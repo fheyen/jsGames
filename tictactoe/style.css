@@ -1,5 +1,6 @@
 #page {
     text-align: center;
+    font-family: sans-serif;
 }
 
 #game {
@@ -17,4 +18,17 @@
     border-radius: 10px;
     background: #eee;
     font-size: 30px;
+}
+
+#message {
+    padding: 10px;
+}
+
+#game button:hover, #control a:hover {
+    background: steelblue;
+    color: white;
+}
+
+fieldset {
+    border: none;
 }

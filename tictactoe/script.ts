@@ -3,6 +3,10 @@ class TicTacToe {
     state: Array<number>;
     nextPlayer: number;
 
+    /**
+     * Creates a new TicTacToe object.
+     * @param useAi if true, player 2 will be played by an artifical intelligence
+     */
     constructor(useAi: boolean) {
         this.useAi = useAi;
         this.state = (new Array(9)).fill(0);
@@ -10,6 +14,10 @@ class TicTacToe {
         this.updateUI();
     }
 
+    /**
+     * Checks if the game is over eihter by winning or draw.
+     * @param state
+     */
     isGameOver(state: Array<number>): boolean {
         // check if board is full
         let full: boolean = true;
@@ -30,6 +38,10 @@ class TicTacToe {
         return false;
     }
 
+    /**
+     * Returns the number of the winning player or null if no winner.
+     * @param state
+     */
     getWinner(state: Array<number>): number {
         // check rows
         for (let i = 0; i < 7; i += 3) {
@@ -61,13 +73,17 @@ class TicTacToe {
         return null;
     }
 
+    /**
+     * Called if a player has clicked on a button.
+     * @param position
+     */
     buttonClicked(position: number): void {
         if (this.state[position] !== 0) {
             // illegal button press
             return;
         }
         if (!this.isGameOver(this.state)) {
-            console.log(`player ${this.nextPlayer} chose ${position}`);
+            console.log(`player ${this.getPlayerSymbol(this.nextPlayer)} chose ${position}`);
 
             // set state
             this.state[position] = this.nextPlayer;
@@ -78,7 +94,7 @@ class TicTacToe {
             // let AI play
             if (this.nextPlayer === 2 && this.useAi && !this.isGameOver(this.state)) {
                 // player 2 is the AI
-                let decision = this.makeDecision();
+                let decision = this.testDecisionSubtree(this.state, 2, 0).choice;
                 this.buttonClicked(decision);
             }
         }
@@ -89,91 +105,103 @@ class TicTacToe {
         if (this.isGameOver(this.state)) {
             let winner = this.getWinner(this.state);
             if (winner !== null) {
-                this.showMessage(`winner: ${winner}`);
-
+                this.showMessage(`game over!<br><br>winner: ${this.getPlayerSymbol(winner)}`);
             } else {
-                this.showMessage("draw");
+                this.showMessage("game over!<br><br>draw");
             }
         }
     }
 
-    makeDecision(): number {
-        // use artificial intelligence to choose best button
-        console.log("thinking..");
-
-        // try out all postions and check who wins
-        let choice = this.testDecisionSubtree(this.state, 2, 0).choice;
-        console.log(choice);
-        return choice;
-    }
-
     /**
+     * Use artificial intelligence to choose best button.
      * Tests all possible outcomes and returns a cost.
      * @param state
      * @param position
      */
     testDecisionSubtree(state: any, player: number, recursionDepth: number): any {
+        let choice;
+        let choices;
         // game over? stop recursion
         if (this.isGameOver(state)) {
             let winner = this.getWinner(state);
             if (winner === 1) {
                 // AI would lose
-                return {
+                choice = {
                     choice: null,
                     cost: 100
                 };
             } else if (winner === 0) {
                 // draw
-                return {
+                choice = {
                     choice: null,
                     cost: 50
                 };
             } else {
                 // AI would win
-                return {
+                choice = {
                     choice: null,
                     cost: 0
                 };
             }
-        }
-
-        // play for both players alternating
-        player = player === 1 ? 2 : 1
-        let choices = [];
-        for (let i = 0; i < 9; i++) {
-            // test all free buttons
-            if (state[i] === 0) {
-                // try a decision
-                let stateAfter = state.slice(0);
-                stateAfter[i] = player;
-                // test the decision
-                let value = this.testDecisionSubtree(stateAfter, player, ++recursionDepth);
-                let pad = "> ".repeat(recursionDepth);
-                // remember choices
-                choices[i] = value.cost;
-            }
-        }
-        // player 1 takes max., player 2 takes min.
-        if (player === 1) {
-            let max = Math.max(...choices);
-            return {
-                choice: choices.indexOf(max),
-                cost: max
-            };
         } else {
-            let min = Math.min(...choices);
-            return {
-                choice: choices.indexOf(min),
-                cost: min
+            // play for both players alternating
+            choices = [];
+            for (let i = 0; i < 9; i++) {
+                // test all free buttons
+                if (state[i] === 0) {
+                    // try a decision
+                    let stateAfter = state.slice(0);
+                    stateAfter[i] = player;
+                    // test the decision
+                    let value = this.testDecisionSubtree(stateAfter, player === 1 ? 2 : 1, ++recursionDepth);
+
+                    // remember choices
+                    choices[i] = value.cost;
+                }
+            }
+            // player 1 takes max., player 2 takes min.
+            let index = -1;
+            let value;
+            if (player === 1) {
+                // get max value and corresponding index
+                value = -1;
+                for (let i = 0; i < choices.length; i++) {
+                    if (choices[i] > value) {
+                        value = choices[i];
+                        index = i;
+                    }
+                }
+            } else {
+                // get max value and corresponding index
+                value = 101;
+                for (let i = 0; i < choices.length; i++) {
+                    if (choices[i] < value) {
+                        value = choices[i];
+                        index = i;
+                    }
+                }
+            }
+            choice = {
+                choice: index,
+                cost: value
             };
         }
+        return choice;
     }
 
+    /**
+     * Displays a message on the UI.
+     * @param message
+     */
     showMessage(message: string): void {
         document.getElementById("message").innerHTML = message;
         console.log(message);
     }
 
+    /**
+     * Maps a player number to a symbol.
+     * @param player
+     */
     getPlayerSymbol(player: number): string {
         switch (player) {
             case 1:
@@ -185,34 +213,30 @@ class TicTacToe {
         }
     }
 
-    stateToString(state: Array<number>, pad: string): string {
-        let str = pad;
-        for (var i = 0; i < state.length; i++) {
-            str += `${state[i]} `;
-            if ((i + 1) % 3 === 0) {
-                str += `\n${pad}`;
-            }
-        }
-        return str;
-    }
-
+    /**
+     * Draws the UI.
+     */
     updateUI(): void {
         let buttons = document.getElementsByTagName("button");
         let gameOver = this.isGameOver(this.state);
 
         for (let i = 0; i < buttons.length; i++) {
             buttons[i].innerHTML = this.getPlayerSymbol(this.state[i]);
-            if (this.state[i] !== 0 || gameOver) {
-                // disable button
-                buttons[i].disabled = true;
-            }
+            // disable or enable button
+            buttons[i].disabled = this.state[i] !== 0 || gameOver;
         }
 
-        this.showMessage(`next player: ${this.nextPlayer}`);
+        this.showMessage(`next player: ${this.getPlayerSymbol(this.nextPlayer)}`);
     }
 }
 
 var game;
-function init() {
-    game = new TicTacToe(false);
+/**
+ * Starts a new game.
+ * @param isTwoPlayerMode game mode
+ */
+function init(isTwoPlayerMode) {
+    console.log("\n~~~ new game ~~~");
+    console.log(isTwoPlayerMode ? "two player mode" : "human vs. AI mode");
+    game = new TicTacToe(!isTwoPlayerMode);
 }

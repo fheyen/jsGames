@@ -15,7 +15,7 @@
     <title>TicTacToe</title>
 </head>
 
-<body onload="init()">
+<body onload="init(false)">
 
     <div id="page">
         <h1>TicTacToe</h1>
@@ -33,8 +33,13 @@
         <div id="message">
 
         </div>
-        <div>
-            <a href="./index.html">restart</a>
+        <div id="control">
+            <fieldset>
+                <input type="radio" id="twoPlayers" name="mode" value="twoPlayers" onchange="init(this.checked)">
+                <label for="twoPlayers"> Two Players</label>
+                <input type="radio" id="humanVsAi" name="mode" value="humanVsAi" checked onchange="init(!this.checked)">
+                <label for="humanVsAi"> Human vs. AI</label>
+            </fieldset>
         </div>
     </div>
 
