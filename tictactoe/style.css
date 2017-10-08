@@ -13,20 +13,8 @@
     grid-gap: 10px;
 }
 
-#game button {
-    border: 1px solid #666;
-    border-radius: 10px;
-    background: #eee;
-    font-size: 30px;
-}
-
 #message {
     padding: 10px;
-}
-
-#game button:hover, #control a:hover {
-    background: steelblue;
-    color: white;
 }
 
 fieldset {
