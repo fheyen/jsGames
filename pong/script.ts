@@ -1,6 +1,7 @@
 class Pong {
     useAi: boolean;
-    windowSize: any;
+    aiLag: number;
+    gameSize: Array<number>;
     round: number;
     ball: any;
     player1: any;
@@ -8,6 +9,7 @@ class Pong {
     canvas: HTMLCanvasElement;
     ctx: CanvasRenderingContext2D;
     gameRunning: boolean;
+    intervalTime: number;
     interval: any;
     timeout: any;
     /**
@@ -16,8 +18,12 @@ class Pong {
      */
     constructor(useAi: boolean) {
         this.useAi = useAi;
-        this.windowSize = this.getWindowSize();
-        this.round = 1;
+        // lag of the AI in milliseconds
+        this.aiLag = 100;
+        this.gameSize = [600, 400];
+        this.round = 0;
+        // inverse framerate
+        this.intervalTime = 20;
         // ball
         this.ball = {
             radius: 5
@@ -31,8 +37,7 @@ class Pong {
             id: 2,
             score: 0
         };
-        // start direction is random
-        this.reset(Math.random() > 0.5 ? 1 : -1);
+        this.reset();
         // canvas
         this.canvas = this.createCanvas();
         this.ctx = this.canvas.getContext("2d");
@@ -43,82 +48,86 @@ class Pong {
         this.showMessage("press any key to start");
     }
 
-    reset(winner: number): void {
-        console.log("reset");
+    /**
+     * Resets the game to be ready for the next round.
+     * Makes the game more difficult in each round.
+     */
+    reset(): void {
+        this.round++;
         // ball
         this.ball.position = [
-            this.windowSize.x / 2,
-            this.windowSize.y / 2
+            this.gameSize[0] / 2,
+            this.gameSize[1] / 2
         ];
         let speed = 2 + this.round * 0.1;
         this.ball.speed = [
-            winner === 1 ? speed : -speed,
+            Math.random() > 0.5 ? speed : -speed,
             0
         ];
         // players
-        this.player1.position = this.windowSize.y / 2;
-        this.player2.position = this.windowSize.y / 2;
-        // make player smaller every round
-        // make player small if lost, bigger if won
-        let size = this.windowSize.y / 3 - this.round * 5;
+        this.player1.position = this.gameSize[1] / 2;
+        this.player2.position = this.gameSize[1] / 2;
+        // make players smaller every round
+        // make a player small if they lost, bigger if they won
+        let size = this.gameSize[1] / 3 - this.round * 5;
         this.player1.size = (this.player1.score - this.player2.score) * 10 + size;
         this.player2.size = (this.player2.score - this.player1.score) * 10 + size;
     }
 
     /**
-     * Start the game.
+     * Resets the game to the initial conditions.
+     */
+    resetComplete() {
+        this.round = 0;
+        this.player1.score = 0;
+        this.player2.score = 0;
+        this.reset();
+    }
+
+    /**
+     * Starts the game.
      */
     startGame(): void {
         this.gameRunning = true;
         this.showMessage("start");
         this.timeout = null;
-        this.interval = setInterval(this.animateBall, 20, this);
+        this.interval = setInterval(this.animateBall, this.intervalTime, this);
     }
 
     /**
-     * End the game.
+     * Ends the game.
      * @param winner winner of the currently ended game.
      */
     endGame(winner: number): void {
         clearInterval(this.interval);
         this.gameRunning = false;
         this.updateUI();
-        this.showMessage(`game over! winner: player ${winner}`);
-        this.reset(winner);
-    }
-
-    /**
-     * Source: https://stackoverflow.com/a/11744120
-     *
-     * Returns the current size of the browser window as {x, y}.
-     */
-    getWindowSize(): any {
-        const w = window,
-            d = document,
-            e = d.documentElement,
-            g = d.getElementsByTagName('body')[0],
-            x = w.innerWidth || e.clientWidth || g.clientWidth,
-            y = w.innerHeight || e.clientHeight || g.clientHeight;
-        return { x: 600, y: 400 };
-        // return { x, y };
+        let loser = winner === 1 ? this.player2 : this.player1;
+        if (loser.size < 20) {
+            this.showMessage(`game over! winner: player ${loser.id} died!`);
+            this.resetComplete();
+        } else {
+            this.showMessage(`game over! winner: player ${winner}`);
+            this.reset();
+        }
     }
 
     /**
      * Creates and returns a canvas object.
      */
     createCanvas(): HTMLCanvasElement {
-        let windowSize = this.windowSize;
         let canvas = document.createElement("canvas");
-        canvas.width = windowSize.x;
-        canvas.height = windowSize.y;
+        canvas.width = this.gameSize[0];
+        canvas.height = this.gameSize[1];
         document.getElementById("game").appendChild(canvas);
         return canvas;
     }
 
     /**
      * Called if a player has clicked on a button.
+     * @param event keydown event
      */
-    keyDown(event): void {
+    keyDown(event: KeyboardEvent): void {
         if (!this.gameRunning) {
             this.startGame();
         } else {
@@ -188,6 +197,13 @@ class Pong {
             // depending on where the player was hit
             _this.ball.speed[1] += _this.playerHitDeltaYSpeed(p1hit ? _this.player1 : _this.player2);
         }
+        // if the AI is playing, let it react to the current ball y-position
+        // but only slowly
+        if (_this.ball.position[1] > _this.player1.position) {
+            _this.player1.position += 0.8;
+        } else {
+            _this.player1.position -= 0.8;
+        }
     }
 
     /**
@@ -255,6 +271,12 @@ class Pong {
             2 * Math.PI
         );
         this.ctx.fill();
+        // round
+        this.ctx.fillText(
+            `round ${this.round}`,
+            this.canvas.width / 2,
+            25
+        );
         // score
         this.ctx.fillText(
             `${this.player1.score} : ${this.player2.score}`,
