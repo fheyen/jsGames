@@ -199,10 +199,12 @@ class Pong {
         }
         // if the AI is playing, let it react to the current ball y-position
         // but only slowly
-        if (_this.ball.position[1] > _this.player1.position) {
-            _this.player1.position += 0.8;
-        } else {
-            _this.player1.position -= 0.8;
+        if (this.useAi) {
+            if (_this.ball.position[1] > _this.player1.position) {
+                _this.player1.position += 0.8;
+            } else {
+                _this.player1.position -= 0.8;
+            }
         }
     }
 
