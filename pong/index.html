@@ -12,27 +12,14 @@
 
     <!-- <link rel="shortcut icon" href="./favicon.ico" type="image/x-icon"> -->
 
-    <title>TicTacToe</title>
+    <title>Pong</title>
 </head>
 
-<body onload="init(false)">
+<body onload="init()" onkeydown="game.keyDown(event)">
 
     <div id="page">
-        <h1>TicTacToe</h1>
-        <div id="game">
-            <button onclick="game.buttonClicked(0)"></button>
-            <button onclick="game.buttonClicked(1)"></button>
-            <button onclick="game.buttonClicked(2)"></button>
-            <button onclick="game.buttonClicked(3)"></button>
-            <button onclick="game.buttonClicked(4)"></button>
-            <button onclick="game.buttonClicked(5)"></button>
-            <button onclick="game.buttonClicked(6)"></button>
-            <button onclick="game.buttonClicked(7)"></button>
-            <button onclick="game.buttonClicked(8)"></button>
-        </div>
-        <div id="message">
+        <h1>Pong</h1>
 
-        </div>
         <div id="control">
             <fieldset>
                 <input type="radio" id="twoPlayers" name="mode" value="twoPlayers" onchange="init(this.checked)">
@@ -41,6 +28,10 @@
                 <label for="humanVsAi"> Human vs. AI</label>
             </fieldset>
         </div>
+
+        <div id="game">
+        </div>
+
     </div>
 
 </body>

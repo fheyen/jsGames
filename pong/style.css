@@ -1,0 +1,20 @@
+body, div {
+    margin: 0px;
+    padding: 0px;
+}
+
+#page {
+    text-align: center;
+    font-family: sans-serif;
+}
+
+#game {
+}
+
+#message {
+    padding: 10px;
+}
+
+fieldset {
+    border: none;
+}
