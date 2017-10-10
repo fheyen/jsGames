@@ -182,7 +182,7 @@ class Copter {
     }
 
     /**
-     * @param _this this Pong object
+     * @param _this this object
      */
     animate(_this: Copter): void {
         // abbreviations
