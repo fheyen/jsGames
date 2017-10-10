@@ -8,47 +8,21 @@
 
     <script src="./script.js"></script>
 
-    <link rel="stylesheet" href="./style.css">
+    <style>
+        body,
+        div {
+            margin: 0px;
+            padding: 0px;
+            overflow: hidden;
+        }
+    </style>
 
     <!-- <link rel="shortcut icon" href="./favicon.ico" type="image/x-icon"> -->
 
     <title>Pong</title>
 </head>
 
-<body onload="init()" onkeydown="game.keyDown(event)">
-
-    <div id="page">
-        <h1>Pong</h1>
-
-        <div id="control">
-            <fieldset>
-                <input type="radio" id="twoPlayers" name="mode" value="twoPlayers" onchange="init(this.checked)">
-                <label for="twoPlayers"> Two Players</label>
-                <input type="radio" id="humanVsAi" name="mode" value="humanVsAi" checked onchange="init(!this.checked)">
-                <label for="humanVsAi"> Human vs. AI</label>
-            </fieldset>
-        </div>
-
-        <div id="game">
-        </div>
-
-        <div id="instructions">
-            <ul>
-                <li>player 1 (left, only in two player mode):</li>
-                <ul>
-                    <li>up: <kbd>w</kbd></li>
-                    <li>down: <kbd>s</kbd></li>
-                </ul>
-                <li>player 2 (right):</li>
-                <ul>
-                    <li>up: <kbd>ArrowUp</kbd></li>
-                    <li>down: <kbd>ArrowDown</kbd></li>
-                </ul>
-                <li>restart: <kbd>F5</kbd></li>
-            </ul>
-        </div>
-
-    </div>
+<body onload="init()" onkeydown="keyDown(event)">
 
 </body>
 

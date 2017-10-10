@@ -7,32 +7,31 @@ var Pong = /** @class */ (function () {
         this.useAi = useAi;
         // lag of the AI in milliseconds
         this.aiLag = 100;
-        this.gameSize = [600, 400];
+        this.gameSize = [
+            window.innerWidth,
+            window.innerHeight
+        ];
         this.round = 0;
         // inverse framerate
-        this.intervalTime = 20;
+        this.intervalTime = 16;
         // ball
         this.ball = {
-            radius: 5
+            radius: Math.min(window.innerWidth, window.innerHeight) / 100
         };
         // players
         this.player1 = {
-            id: 1,
-            score: 0
+            id: 1
         };
         this.player2 = {
-            id: 2,
-            score: 0
+            id: 2
         };
-        this.reset();
         // canvas
         this.canvas = this.createCanvas();
         this.ctx = this.canvas.getContext("2d");
-        this.ctx.font = "20px Arial";
+        this.ctx.font = "20px Consolas";
         this.ctx.textAlign = "center";
-        // draw UI
-        this.updateUI();
-        this.showMessage("press any key to start");
+        // initialize game
+        this.resetComplete();
     }
     /**
      * Resets the game to be ready for the next round.
@@ -45,7 +44,7 @@ var Pong = /** @class */ (function () {
             this.gameSize[0] / 2,
             this.gameSize[1] / 2
         ];
-        var speed = 2 + this.round * 0.1;
+        var speed = this.gameSize[0] / 200 + this.round * this.gameSize[0] / 2000;
         this.ball.speed = [
             Math.random() > 0.5 ? speed : -speed,
             0
@@ -67,13 +66,16 @@ var Pong = /** @class */ (function () {
         this.player1.score = 0;
         this.player2.score = 0;
         this.reset();
+        // draw UI
+        this.updateUI(false);
+        this.showMessages("P O N G", "~~~ new game ~~~", this.useAi ? "human vs. PC" : "2 player mode", "", "press <m> to change game mode", "press <s> or <⬆> to start", "player1 (left): " + (this.useAi ? "PC" : "up <w> down <s>"), "player2 (right): up <⬆> down <⬇>", "press <F5> to reset");
     };
     /**
      * Starts the game.
      */
     Pong.prototype.startGame = function () {
         this.gameRunning = true;
-        this.showMessage("start");
+        this.resetComplete();
         this.timeout = null;
         this.interval = setInterval(this.animateBall, this.intervalTime, this);
     };
@@ -83,17 +85,18 @@ var Pong = /** @class */ (function () {
      */
     Pong.prototype.endGame = function (winner) {
         clearInterval(this.interval);
-        this.gameRunning = false;
-        this.updateUI();
+        this.updateUI(false);
         var loser = winner === 1 ? this.player2 : this.player1;
+        var message;
         if (loser.size < 20) {
-            this.showMessage("game over! winner: player " + loser.id + " died!");
-            this.resetComplete();
+            message = "player " + loser.id + " died!";
+            this.gameRunning = false;
         }
         else {
-            this.showMessage("game over! winner: player " + winner);
+            message = "winner: player " + winner;
             this.reset();
         }
+        this.showMessages("game over!", message, "press <s> or <⬆> to continue");
     };
     /**
      * Creates and returns a canvas object.
@@ -102,7 +105,7 @@ var Pong = /** @class */ (function () {
         var canvas = document.createElement("canvas");
         canvas.width = this.gameSize[0];
         canvas.height = this.gameSize[1];
-        document.getElementById("game").appendChild(canvas);
+        document.getElementsByTagName("body")[0].appendChild(canvas);
         return canvas;
     };
     /**
@@ -110,8 +113,17 @@ var Pong = /** @class */ (function () {
      * @param event keydown event
      */
     Pong.prototype.keyDown = function (event) {
+        event.preventDefault();
+        // start game if it is not running
         if (!this.gameRunning) {
-            this.startGame();
+            if (event.key === "m") {
+                // change game mode
+                this.useAi = !this.useAi;
+                this.resetComplete();
+            }
+            else {
+                this.startGame();
+            }
         }
         else {
             // process keyboard input
@@ -181,9 +193,9 @@ var Pong = /** @class */ (function () {
             // depending on where the player was hit
             _this.ball.speed[1] += _this.playerHitDeltaYSpeed(p1hit ? _this.player1 : _this.player2);
         }
-        // if the AI is playing, let it react to the current ball y-position
-        // but only slowly
-        if (this.useAi) {
+        if (_this.useAi) {
+            // if the AI is playing, let it react to the current ball y-position
+            // but only slowly
             if (_this.ball.position[1] > _this.player1.position) {
                 _this.player1.position += 0.8;
             }
@@ -215,14 +227,24 @@ var Pong = /** @class */ (function () {
      * Displays a message on the UI.
      * @param message
      */
-    Pong.prototype.showMessage = function (message) {
-        this.ctx.fillText(message, this.canvas.width / 2, this.canvas.height / 2 - 20);
-        console.log(message);
+    Pong.prototype.showMessages = function () {
+        var _this = this;
+        var messages = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            messages[_i] = arguments[_i];
+        }
+        var offsetY = this.canvas.height / 2 - 15 * messages.length;
+        messages.forEach(function (m) {
+            _this.ctx.fillText(m, _this.canvas.width / 2, offsetY);
+            offsetY += 30;
+            console.log(m);
+        });
     };
     /**
      * Draws the UI.
      */
-    Pong.prototype.updateUI = function () {
+    Pong.prototype.updateUI = function (drawBall) {
+        if (drawBall === void 0) { drawBall = true; }
         // background
         this.ctx.fillStyle = "#000";
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
@@ -231,9 +253,11 @@ var Pong = /** @class */ (function () {
         this.ctx.fillRect(5, this.player1.position - this.player1.size / 2, 10, this.player1.size);
         this.ctx.fillRect(this.canvas.width - 15, this.player2.position - this.player2.size / 2, 10, this.player2.size);
         // ball
-        this.ctx.beginPath();
-        this.ctx.arc(this.ball.position[0], this.ball.position[1], this.ball.radius, 0, 2 * Math.PI);
-        this.ctx.fill();
+        if (drawBall) {
+            this.ctx.beginPath();
+            this.ctx.arc(this.ball.position[0], this.ball.position[1], this.ball.radius, 0, 2 * Math.PI);
+            this.ctx.fill();
+        }
         // round
         this.ctx.fillText("round " + this.round, this.canvas.width / 2, 25);
         // score
@@ -249,14 +273,31 @@ var Pong = /** @class */ (function () {
 }());
 var game;
 /**
- * Starts a new game.
- * @param isTwoPlayerMode game mode
+ * Processes keyboard events.
+ * @param event keyboard event
  */
-function init(isTwoPlayerMode) {
-    console.log("\n~~~ new game ~~~");
-    console.log(isTwoPlayerMode ? "two player mode" : "human vs. AI mode");
+function keyDown(event) {
+    // some keys should be processed by the browser
+    switch (event.key) {
+        case "F5":
+            return;
+        case "F11":
+            return;
+        case "F12":
+            return;
+        default:
+            // pass on to game
+            if (game) {
+                game.keyDown(event);
+            }
+    }
+}
+/**
+ * Starts a new game.
+ */
+function init() {
     if (game) {
         game.remove();
     }
-    game = new Pong(!isTwoPlayerMode);
+    game = new Pong(false);
 }
