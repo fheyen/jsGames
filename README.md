@@ -1,2 +1,2 @@
 # jsGames
-Games written in JavaScript
+Games written in JavaScript.
