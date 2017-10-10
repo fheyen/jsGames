@@ -235,7 +235,7 @@ var game;
  * Starts a new game.
  * @param isTwoPlayerMode game mode
  */
-function initTicTacToe(isTwoPlayerMode) {
+function initTicTacToe(isTwoPlayerMode: boolean): void {
     console.log("\n~~~ new game ~~~");
     console.log(isTwoPlayerMode ? "two player mode" : "human vs. AI mode");
     game = new TicTacToe(!isTwoPlayerMode);

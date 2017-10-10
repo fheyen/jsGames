@@ -77,7 +77,7 @@ class Pong {
     /**
      * Resets the game to the initial conditions.
      */
-    resetComplete() {
+    resetComplete(): void {
         this.round = 0;
         this.player1.score = 0;
         this.player2.score = 0;
@@ -322,7 +322,7 @@ class Pong {
     /**
      * Removes the canvas from the DOM.
      */
-    remove() {
+    remove(): void {
         this.canvas.remove();
     }
 }
