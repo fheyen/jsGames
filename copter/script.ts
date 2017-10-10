@@ -154,11 +154,13 @@ class Copter {
         switch (event.key) {
             case "ArrowUp":
                 if (!this.gameStarted) {
+                    // start game if it is not running
                     this.startGame();
                 } else if (!this.gameRunning) {
-                    // start game if it is not running
+                    // resume game if it is paused
                     this.resumeGame();
                 } else if (this.player.y > 50) {
+                    // move copter up if game is running
                     this.player.y -= 50;
                 }
                 break;
@@ -355,12 +357,10 @@ class CopterObstacle {
             this.holeLowerY = height - this.holeUpperY;
         } else {
             this.xPosition = lastObstacle.xPosition + width;
-            // get hole
             let r1 = Math.random();
             let r2 = Math.random();
             // the lower the upper bound is, the more probable it should go up
             let goDown = ((lastObstacle.holeUpperY + lastObstacle.holeLowerY) / 2) / this.height;
-            console.log(goDown);
             let direction = (r2 > goDown ? 1 : -1);
             // get and apply shift
             let yShift = difficulty * r1 * direction;
