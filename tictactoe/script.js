@@ -5,7 +5,7 @@ var TicTacToe = /** @class */ (function () {
      */
     function TicTacToe(useAi) {
         this.useAi = useAi;
-        this.state = (new Array(9)).fill(0);
+        this.state = new Array(9).fill(0);
         this.nextPlayer = 1;
         this.updateUI();
     }
@@ -220,7 +220,7 @@ var game;
  * Starts a new game.
  * @param isTwoPlayerMode game mode
  */
-function init(isTwoPlayerMode) {
+function initTicTacToe(isTwoPlayerMode) {
     console.log("\n~~~ new game ~~~");
     console.log(isTwoPlayerMode ? "two player mode" : "human vs. AI mode");
     game = new TicTacToe(!isTwoPlayerMode);

@@ -14,7 +14,7 @@ class Pong {
     timeout: any;
 
     /**
-     * Creates a new TicTacToe object.
+     * Creates a new game object.
      * @param useAi if true, player 2 will be played by an artifical intelligence
      */
     constructor(useAi: boolean) {
@@ -142,7 +142,7 @@ class Pong {
     }
 
     /**
-     * Called if a player has clicked on a button.
+     * Called when a player has pressed a key.
      * @param event keydown event
      */
     keyDown(event: KeyboardEvent): void {
@@ -333,7 +333,7 @@ var game;
  * Processes keyboard events.
  * @param event keyboard event
  */
-function keyDown(event: KeyboardEvent): void {
+function keyDownPong(event: KeyboardEvent): void {
     // some keys should be processed by the browser
     switch (event.key) {
         case "F5":
@@ -353,7 +353,7 @@ function keyDown(event: KeyboardEvent): void {
 /**
  * Starts a new game.
  */
-function init(): void {
+function initPong(): void {
     if (game) {
         game.remove();
     }

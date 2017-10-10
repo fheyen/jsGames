@@ -1,0 +1,1 @@
+tsc ./tictactoe/script.ts ./pong/script.ts ./copter/script.ts -w

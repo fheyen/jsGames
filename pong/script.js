@@ -1,6 +1,6 @@
 var Pong = /** @class */ (function () {
     /**
-     * Creates a new TicTacToe object.
+     * Creates a new game object.
      * @param useAi if true, player 2 will be played by an artifical intelligence
      */
     function Pong(useAi) {
@@ -109,7 +109,7 @@ var Pong = /** @class */ (function () {
         return canvas;
     };
     /**
-     * Called if a player has clicked on a button.
+     * Called when a player has pressed a key.
      * @param event keydown event
      */
     Pong.prototype.keyDown = function (event) {
@@ -276,7 +276,7 @@ var game;
  * Processes keyboard events.
  * @param event keyboard event
  */
-function keyDown(event) {
+function keyDownPong(event) {
     // some keys should be processed by the browser
     switch (event.key) {
         case "F5":
@@ -295,7 +295,7 @@ function keyDown(event) {
 /**
  * Starts a new game.
  */
-function init() {
+function initPong() {
     if (game) {
         game.remove();
     }
