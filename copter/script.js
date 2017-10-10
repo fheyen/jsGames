@@ -142,7 +142,7 @@ var Copter = /** @class */ (function () {
         }
     };
     /**
-     * @param _this this Pong object
+     * @param _this this object
      */
     Copter.prototype.animate = function (_this) {
         // abbreviations

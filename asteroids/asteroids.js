@@ -10,10 +10,7 @@ var __extends = (this && this.__extends) || (function () {
 })();
 var Asteroids = /** @class */ (function () {
     function Asteroids() {
-        this.gameSize = [
-            window.innerWidth,
-            window.innerHeight
-        ];
+        this.gameSize = new Vector2D(window.innerWidth, window.innerHeight);
         // inverse framerate
         this.intervalTime = 100;
         // canvas
@@ -37,19 +34,18 @@ var Asteroids = /** @class */ (function () {
         this.gameOver = false;
         this.gameRunning = false;
         // create ship
-        var size = Math.min(this.gameSize[0], this.gameSize[1]) / 10;
-        var position = new Vector2D(this.gameSize[0] / 2, this.gameSize[1] / 2);
+        var size = Math.min(this.gameSize.x, this.gameSize.y) / 10;
+        var position = new Vector2D(this.gameSize.x / 2, this.gameSize.y / 2);
         var orientation = 0;
         var velocity = new Vector2D(0, 0);
         this.ship = new Spaceship(position, orientation, velocity, size, 100);
         // create asteroids
         this.asteroids = [];
-        var number = 3;
+        var number = 5;
         for (var i = 0; i < number; i++) {
-            var aPos = Vector2D.randomVector(0, this.gameSize[0], 0, this.gameSize[1]);
-            // let aVelocity = Vector2D.randomVector(-10, -10, 10, 10);
-            var aVelocity = new Vector2D(0, 0);
-            var aSize = random(30, 60);
+            var aPos = Vector2D.randomVector(0, this.gameSize.x, 0, this.gameSize.y);
+            var aVelocity = Vector2D.randomVector(-5, 5, -5, 5);
+            var aSize = random(30, 100);
             var a = new Asteroid(aPos, 0, aVelocity, aSize, 50);
             this.asteroids.push(a);
         }
@@ -106,8 +102,8 @@ var Asteroids = /** @class */ (function () {
      */
     Asteroids.prototype.createCanvas = function () {
         var canvas = document.createElement("canvas");
-        canvas.width = this.gameSize[0];
-        canvas.height = this.gameSize[1];
+        canvas.width = this.gameSize.x;
+        canvas.height = this.gameSize.y;
         document.getElementsByTagName("body")[0].appendChild(canvas);
         return canvas;
     };
@@ -136,7 +132,7 @@ var Asteroids = /** @class */ (function () {
                 }
                 else {
                     // change ship orientation
-                    var angle = 10 * Math.PI / 180;
+                    var angle = 30 * Math.PI / 180;
                     event.key === "ArrowLeft" ? this.ship.rotate(-angle) : this.ship.rotate(angle);
                 }
                 break;
@@ -166,8 +162,6 @@ var Asteroids = /** @class */ (function () {
         _this.timeElapsed += _this.intervalTime;
         // update ship position
         _this.ship.animate();
-        console.log(_this.ship.position);
-        console.log(_this.ship.orientation);
         // animate asteroids
         as.forEach(function (o) { return o.animate(); });
         // test for crash
@@ -232,9 +226,19 @@ var Asteroids = /** @class */ (function () {
 ///////////////////////         H E L P E R S           //////////////////////
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
+/**
+ * Returns a pseudorandom number in [min, max)
+ */
 function random(min, max) {
     return min + (Math.random() * (max - min));
 }
+/**
+ * Draws a polygon onto ctx.
+ * @param ctx canvas context
+ * @param points points
+ * @param stroke stroke style
+ * @param fill fill style
+ */
 function drawPolygon(ctx, points, stroke, fill) {
     ctx.save();
     ctx.beginPath();
@@ -245,6 +249,28 @@ function drawPolygon(ctx, points, stroke, fill) {
     ctx.closePath();
     ctx.strokeStyle = stroke;
     ctx.fillStyle = fill;
+    ctx.stroke();
+    ctx.fill();
+    ctx.restore();
+}
+/**
+ * Draws a cirlce onto ctx.
+ * @param ctx canvas context
+ * @param center center point
+ * @param radius radius
+ * @param stroke stroke style
+ * @param fill fill style
+ * @param startAngle start angle
+ * @param endAngle end angle
+ */
+function drawCircle(ctx, center, radius, stroke, fill, startAngle, endAngle) {
+    if (startAngle === void 0) { startAngle = 0; }
+    if (endAngle === void 0) { endAngle = 2 * Math.PI; }
+    ctx.save();
+    ctx.strokeStyle = stroke;
+    ctx.fillStyle = fill;
+    ctx.beginPath();
+    ctx.arc(center.x, center.y, radius, startAngle, endAngle);
     ctx.stroke();
     ctx.fill();
     ctx.restore();
@@ -273,6 +299,10 @@ var Vector2D = /** @class */ (function () {
         var y = random(minY, maxY);
         return new Vector2D(x, y);
     };
+    /**
+     * Returns a unit vector poiting in the direction of orientation
+     * @param orientation
+     */
     Vector2D.getUnitVectorFromOrientation = function (orientation) {
         return new Vector2D(Math.cos(orientation), Math.sin(orientation));
     };
@@ -372,44 +402,81 @@ var SpaceObject = /** @class */ (function () {
         this.strokeStyle = "#fff";
         this.points = [];
     }
+    /**
+     * Returns a unit vector poiting in the direction of this.orientation
+     */
+    SpaceObject.prototype.getOrientationVector = function () {
+        return Vector2D.getUnitVectorFromOrientation(this.orientation);
+    };
+    /**
+     * Moves this object by its velocity.
+     */
     SpaceObject.prototype.animate = function () {
-        this.position.translateV(this.velocity);
+        this.translate(this.velocity);
     };
     // TODO: objects should reenter on the opposite site if disappearing
+    /**
+     * Tranlates this object by a vector
+     * @param vector
+     */
     SpaceObject.prototype.translate = function (vector) {
         this.position.translateV(vector);
         this.points.forEach(function (p) { return p.translateV(vector); });
     };
+    /**
+     * Rotates this object by an angle.
+     * @param angle
+     */
     SpaceObject.prototype.rotate = function (angle) {
         var _this = this;
         this.orientation += angle;
         this.points.forEach(function (p) { return p.rotate(_this.position.x, _this.position.y, angle); });
     };
+    /**
+     * Hit test with this and another object.
+     * @param object
+     */
     SpaceObject.prototype.isHit = function (object) {
         return false;
     };
+    /**
+     * React to a hit by another object.
+     * @param object
+     */
     SpaceObject.prototype.hitBy = function (object) {
+        // TODO: damage should depend on velocity difference
+        var diff = this.velocity.clone().add(object.velocity.multiplyFactor(-1));
+        var magnitude = diff.getNorm();
+        // TODO: use magnitude
         var impactEnergy = object.energy;
         object.energy -= this.energy;
         this.energy -= impactEnergy;
         this.reactToHit(object);
     };
+    /**
+     * Sub-class specific reaction to hits.
+     * @param object
+     */
     SpaceObject.prototype.reactToHit = function (object) {
         // TODO: asteroids should split if low energy
         // TODO: asteroids should be pushed away by hits
     };
+    /**
+     * Returns true if energy is lower than 0.
+     */
     SpaceObject.prototype.isDestroyed = function () {
         return this.energy < 0;
     };
+    /**
+     * Draws this object onto ctx.
+     * @param ctx canvas context
+     */
     SpaceObject.prototype.draw = function (ctx) {
-        ctx.save();
-        ctx.fillStyle = this.fillStyle;
-        ctx.strokeStyle = this.strokeStyle;
-        ctx.beginPath();
-        ctx.arc(this.position.x, this.position.y, this.size, 0, 2 * Math.PI);
-        ctx.fill();
-        ctx.restore();
+        drawCircle(ctx, this.position, this.size, this.strokeStyle, this.fillStyle);
     };
+    /**
+     * Returns a string representation of this object.
+     */
     SpaceObject.prototype.toString = function () {
         return "SpaceObject (\nposition: " + this.position.toString() + ",\nvelocity: " + this.velocity.toString() + ",\norientation: " + this.orientation.toFixed(2) + ",\nenergy: " + this.energy + "\n";
     };
@@ -423,9 +490,10 @@ var Spaceship = /** @class */ (function (_super) {
         // create shape
         var _a = _this.position, x = _a.x, y = _a.y;
         _this.points = [
-            new Vector2D(x, y),
-            new Vector2D(x - 2 * size, y - size / 2),
-            new Vector2D(x - 2 * size, y + size / 2),
+            new Vector2D(x + 0.5 * size, y),
+            new Vector2D(x - 0.5 * size, y - 0.5 * size),
+            new Vector2D(x - 0.2 * size, y),
+            new Vector2D(x - 0.5 * size, y + 0.5 * size),
         ];
         _this.fillStyle = "#0ff";
         return _this;
@@ -434,19 +502,21 @@ var Spaceship = /** @class */ (function (_super) {
         // TODO: velocity mixes ship velocity and ship orientation
         var velocity = new Vector2D(10, 10);
         var shot = new Shot(this.position, this.orientation, velocity, 3, 3);
+        this.shots.push(shot);
     };
     Spaceship.prototype.increaseVelocity = function () {
-        var direction = Vector2D.getUnitVectorFromOrientation(this.orientation);
+        var direction = this.getOrientationVector();
         var delta = direction.multiplyFactor(2);
         this.velocity.add(delta);
     };
     Spaceship.prototype.decreaseVelocity = function () {
-        var direction = Vector2D.getUnitVectorFromOrientation(this.orientation);
+        var direction = this.getOrientationVector();
         var delta = direction.multiplyFactor(-2);
         this.velocity.add(delta);
     };
     Spaceship.prototype.draw = function (ctx) {
         drawPolygon(ctx, this.points, this.strokeStyle, this.fillStyle);
+        drawCircle(ctx, this.position, 5, "#000", "#fff");
     };
     return Spaceship;
 }(SpaceObject));
