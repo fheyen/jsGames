@@ -19,7 +19,7 @@ class Asteroids {
             window.innerHeight
         );
         // inverse framerate
-        this.intervalTime = 50;
+        this.intervalTime = 20;
         // canvas
         this.canvas = this.createCanvas();
         this.ctx = this.canvas.getContext("2d");
@@ -48,6 +48,7 @@ class Asteroids {
         let position = new Vector2D(this.gameSize.x / 2, this.gameSize.y / 2);
         let orientation = 0;
         let velocity = new Vector2D(0, 0);
+        let power = 10;
         this.ship = new Spaceship(
             this.gameSize,
             position,
@@ -55,7 +56,7 @@ class Asteroids {
             velocity,
             size,
             100,
-            5
+            power
         );
 
         // create asteroids
@@ -63,7 +64,7 @@ class Asteroids {
         let number = 3;
         for (let i = 0; i < number; i++) {
             let aPos = Vector2D.randomVector(0, this.gameSize.x, 0, this.gameSize.y);
-            let aVelocity = Vector2D.randomVector(-2, 2, -2, 2);
+            let aVelocity = Vector2D.randomVector(-1, 1, -1, 1);
             let aSize = random(50, 100);
             let aEnergy = aSize ** 2 / 5;
             let a = new Asteroid(this.gameSize, aPos, 0, aVelocity, aSize, aEnergy);
@@ -222,6 +223,7 @@ class Asteroids {
 
         // update elapsed time
         _this.timeElapsed += _this.intervalTime;
+        _this.score += _this.intervalTime / 3000;
 
         // update object positions
         as.forEach(o => o.animate());
@@ -310,6 +312,7 @@ class Asteroids {
         }
 
         // decay objects
+        _this.ship.decay();
         _this.ship.shots.forEach(s => s.decay());
         _this.drops.forEach(d => d.decay());
 
@@ -795,8 +798,8 @@ class Spaceship extends SpaceObject {
     power: number;
     shield: number;
     lifes: number;
-    static decayRate: number = 0.05; // shield decay rate
-    static acceleration: number = 2;
+    static decayRate: number = 0.1; // shield decay rate
+    static acceleration: number = 1;
     static strokeStyle: string = "#0ff";
     static fillStyle: string = "#0ff";
 
@@ -984,8 +987,21 @@ class Asteroid extends SpaceObject {
     ) {
         super(gameSize, position, orientation, velocity, size, energy);
 
-        // TODO: generate polygon that approximates the
         // circle by using random angles and radii
+        this.points = [];
+        let number = ~~random(5, 20);
+        let step = 2 * Math.PI / number;
+        let angle = 0;
+        for (let i = 0; i <= number; i++) {
+            let radius = random(this.size * 0.3, this.size * 1.3);
+            let x = this.position.x + this.size * Math.cos(angle);
+            let y = this.position.y + this.size * Math.sin(angle);
+            this.points.push(new Vector2D(x, y));
+            angle += random(step * 0.5, step * 2);
+            if (angle > 2 * Math.PI) {
+                break;
+            }
+        }
     }
 
     /**
@@ -1047,9 +1063,9 @@ class Asteroid extends SpaceObject {
 
             let child = new Asteroid(
                 this.gameSize,
-                this.position.clone().add(Vector2D.randomVector(-5, 5, -5, 5)),
+                this.position.clone().add(Vector2D.randomVector(-1, 1, -1, 1)),
                 this.orientation,
-                this.velocity.clone().add(Vector2D.randomVector(-5, 5, -5, 5)),
+                this.velocity.clone().add(Vector2D.randomVector(-1, 1, -1, 1)),
                 size,
                 energy
             );
@@ -1069,9 +1085,9 @@ class Asteroid extends SpaceObject {
         }
         return new Drop(
             this.gameSize,
-            this.position.clone().add(Vector2D.randomVector(-5, 5, -5, 5)),
+            this.position.clone().add(Vector2D.randomVector(-2, 2, -2, 2)),
             this.orientation,
-            this.velocity.clone().add(Vector2D.randomVector(-5, 5, -5, 5)),
+            this.velocity.clone().add(Vector2D.randomVector(-2, 2, -2, 2)),
             10,
             100
         );
@@ -1086,7 +1102,8 @@ class Asteroid extends SpaceObject {
         if (this.energy < 0) {
             return;
         }
-        drawCircle(ctx, this.position, this.size, Asteroid.strokeStyle, Asteroid.fillStyle);
+        // drawCircle(ctx, this.position, this.size, Asteroid.strokeStyle, Asteroid.fillStyle);
+        drawPolygon(ctx, this.points, Asteroid.strokeStyle, Asteroid.fillStyle);
         ctx.fillStyle = "#fff";
         ctx.fillText((~~this.energy).toString(), this.position.x, this.position.y);
     }
@@ -1127,7 +1144,7 @@ class Drop extends SpaceObject {
                 break;
 
             case "shield":
-                this.effect = ~~random(50, 100);
+                this.effect = ~~random(500, 1000);
                 this.color = "255, 255, 0";
                 break;
 
@@ -1162,6 +1179,8 @@ class Drop extends SpaceObject {
      * @param collector
      */
     collect(collector: Spaceship, game: Asteroids): void {
+        // increase score for collecting
+        game.score += 250;
         switch (this.effectType) {
             case "energy":
                 collector.energy += this.effect;
