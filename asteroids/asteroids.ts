@@ -34,6 +34,17 @@ class Asteroids {
     }
 
     /**
+     * Creates and returns a canvas object.
+     */
+    createCanvas(): HTMLCanvasElement {
+        let canvas = document.createElement("canvas");
+        canvas.width = this.gameSize.x;
+        canvas.height = this.gameSize.y;
+        document.getElementsByTagName("body")[0].appendChild(canvas);
+        return canvas;
+    }
+
+    /**
      * Resets the game to the initial conditions.
      */
     reset() {
@@ -47,16 +58,25 @@ class Asteroids {
         let position = new Vector2D(this.gameSize.x / 2, this.gameSize.y / 2);
         let orientation = 0;
         let velocity = new Vector2D(0, 0);
-        this.ship = new Spaceship(this.gameSize, position, orientation, velocity, size, 100);
+        this.ship = new Spaceship(
+            this.gameSize,
+            position,
+            orientation,
+            velocity,
+            size,
+            1000,
+            100
+        );
 
         // create asteroids
         this.asteroids = [];
-        let number = 5;
+        let number = 3;
         for (let i = 0; i < number; i++) {
             let aPos = Vector2D.randomVector(0, this.gameSize.x, 0, this.gameSize.y);
-            let aVelocity = Vector2D.randomVector(-5, 5, -5, 5);
-            let aSize = random(30, 100);
-            let a = new Asteroid(this.gameSize, aPos, 0, aVelocity, aSize, 50);
+            let aVelocity = Vector2D.randomVector(-2, 2, -2, 2);
+            let aSize = random(50, 100);
+            let aEnergy = aSize ** 2;
+            let a = new Asteroid(this.gameSize, aPos, 0, aVelocity, aSize, aEnergy);
             this.asteroids.push(a);
         }
 
@@ -73,6 +93,8 @@ class Asteroids {
             "press <F5> to reset"
         );
     }
+
+    // #region game events
 
     /**
      * Starts the game.
@@ -99,7 +121,7 @@ class Asteroids {
         this.gameRunning = false;
         clearInterval(this.interval);
         this.showMessages(
-            "Copter",
+            "Asteroids",
             "~~~ paused ~~~",
             "",
             "press <space> continue",
@@ -124,7 +146,6 @@ class Asteroids {
     endGame(): void {
         this.gameOver = true;
         clearInterval(this.interval);
-        this.updateUI();
         this.showMessages(
             "~~~ game over! ~~~",
             "",
@@ -134,16 +155,7 @@ class Asteroids {
         );
     }
 
-    /**
-     * Creates and returns a canvas object.
-     */
-    createCanvas(): HTMLCanvasElement {
-        let canvas = document.createElement("canvas");
-        canvas.width = this.gameSize.x;
-        canvas.height = this.gameSize.y;
-        document.getElementsByTagName("body")[0].appendChild(canvas);
-        return canvas;
-    }
+    // #endregion game events
 
     /**
      * Called if a ship has clicked on a button.
@@ -169,7 +181,7 @@ class Asteroids {
                     return;
                 } else {
                     // change ship orientation
-                    let angle = 30 * Math.PI / 180;
+                    let angle = 10 * Math.PI / 180;
                     event.key === "ArrowLeft" ? this.ship.rotate(-angle) : this.ship.rotate(angle);
                 }
                 break;
@@ -233,16 +245,35 @@ class Asteroids {
         // remove ceased shots
         _this.ship.shots = _this.ship.shots.filter(s => !s.isDestroyed());
 
-        // TODO: test shots and asteroids for collisions
+        // test shots and asteroids for collisions
+        for (let i = 0; i < as.length; i++) {
+            let asteroid = as[i];
+            for (var j = 0; j < _this.ship.shots.length; j++) {
+                let shot = _this.ship.shots[j];
+
+                if (asteroid.isHit(shot)) {
+                    // reduce energy of asteroid
+                    asteroid.hitBy(shot);
+
+                    // destroyed?
+                    if (asteroid.isDestroyed()) {
+                        // remove this asteroid
+                        _this.asteroids.filter(a => a !== asteroid);
+                    }
+                }
+            }
+        }
         let destroyedObject: SpaceObject = null;
 
         // TODO: score
         // _this.score += destroyedObject.originalEnergy;
 
-
         // draw game
         _this.updateUI();
     }
+
+
+    // #region UI
 
     /**
      * Displays a message on the UI.
@@ -277,7 +308,7 @@ class Asteroids {
         // ship energy, time
         this.ctx.fillStyle = "#fff";
         this.ctx.fillText(
-            `energy: ${~~this.ship.energy} time ${~~(this.timeElapsed / 1000)}`,
+            `energy: ${~~this.ship.energy} power: ${~~this.ship.power} time ${~~(this.timeElapsed / 1000)}`,
             this.canvas.width / 2,
             25
         );
@@ -289,6 +320,8 @@ class Asteroids {
     remove(): void {
         this.canvas.remove();
     }
+
+    // #endregion UI
 }
 
 
@@ -299,6 +332,8 @@ class Asteroids {
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 
+
+// #region helper functions
 
 /**
  * Returns a pseudorandom number in [min, max)
@@ -322,10 +357,14 @@ function drawPolygon(ctx: CanvasRenderingContext2D, points: Array<Vector2D>, str
         ctx.lineTo(points[i].x, points[i].y);
     }
     ctx.closePath();
-    ctx.strokeStyle = stroke;
-    ctx.fillStyle = fill;
-    ctx.stroke();
-    ctx.fill();
+    if (stroke) {
+        ctx.strokeStyle = stroke;
+        ctx.stroke();
+    }
+    if (fill) {
+        ctx.fillStyle = fill;
+        ctx.fill();
+    }
     ctx.restore();
 }
 
@@ -341,15 +380,20 @@ function drawPolygon(ctx: CanvasRenderingContext2D, points: Array<Vector2D>, str
  */
 function drawCircle(ctx: CanvasRenderingContext2D, center: Vector2D, radius: number, stroke: string, fill: string, startAngle: number = 0, endAngle: number = 2 * Math.PI): void {
     ctx.save();
-    ctx.strokeStyle = stroke;
-    ctx.fillStyle = fill;
     ctx.beginPath();
     ctx.arc(center.x, center.y, radius, startAngle, endAngle);
-    ctx.stroke();
-    ctx.fill();
+    if (stroke) {
+        ctx.strokeStyle = stroke;
+        ctx.stroke();
+    }
+    if (fill) {
+        ctx.fillStyle = fill;
+        ctx.fill();
+    }
     ctx.restore();
 }
 
+// #endregion helper functions
 
 
 
@@ -357,13 +401,7 @@ function drawCircle(ctx: CanvasRenderingContext2D, center: Vector2D, radius: num
 
 
 
-
-
-
-
-
-
-
+// #region Vector2D
 
 
 
@@ -378,10 +416,13 @@ class Vector2D {
      * @param {number} x x-coordinate
      * @param {number} y y-coordinate
      */
-    constructor(x, y) {
+    constructor(x: number, y: number) {
         this.x = x;
         this.y = y;
     }
+
+
+    // #region statics
 
     /**
      * Creates and returns a vector with random values.
@@ -390,7 +431,7 @@ class Vector2D {
      * @param minY
      * @param maxY
      */
-    static randomVector(minX, maxX, minY, maxY): Vector2D {
+    static randomVector(minX: number, maxX: number, minY: number, maxY: number): Vector2D {
         let x = random(minX, maxX);
         let y = random(minY, maxY);
         return new Vector2D(x, y);
@@ -400,9 +441,20 @@ class Vector2D {
      * Returns a new unit vector poiting in the direction of orientation
      * @param orientation
      */
-    static getUnitVectorFromOrientation(orientation: number) {
+    static getUnitVectorFromOrientation(orientation: number): Vector2D {
         return new Vector2D(Math.cos(orientation), Math.sin(orientation));
     }
+
+    /**
+     * Returns the distance if two points.
+     * @param vector1 point 1
+     * @param vector2 point 2
+     */
+    static getDistance(vector1: Vector2D, vector2: Vector2D): number {
+        return vector1.clone().add(vector2.clone().multiplyFactor(-1)).getNorm();
+    }
+
+    // endregion statics
 
     /**
      * Translates the point by dx and dy.
@@ -493,6 +545,10 @@ class Vector2D {
 }
 
 
+// #endregion Vector2D
+
+
+
 
 
 
@@ -502,7 +558,7 @@ class Vector2D {
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 
-
+// #region space objects
 
 
 
@@ -518,13 +574,21 @@ class SpaceObject {
     gameSize: Vector2D;
     points: Array<Vector2D>;
 
-    constructor(gameSize, position, orientation, velocity, size, energy) {
+    constructor(
+        gameSize: Vector2D,
+        position: Vector2D,
+        orientation: number,
+        velocity: Vector2D,
+        size: number,
+        energy: number
+    ) {
         this.gameSize = gameSize;
         this.position = position;
         this.orientation = orientation;
         this.velocity = velocity;
         this.size = size;
         this.energy = energy;
+
         this.originalEnergy = energy;
         this.points = [];
     }
@@ -544,13 +608,12 @@ class SpaceObject {
     }
 
     /**
-     * Tranlates this object by a vector
-     * @param vector
+     * Tranlates this object by a vector, keeping it inside the universe.
+     * @param vector translation vector
      */
     translate(vector: Vector2D): void {
         this.position.translateV(vector);
         this.points.forEach(p => p.translateV(vector));
-
 
         // objects should reenter on the opposite site if disappearing
         let margin = this.size;
@@ -584,9 +647,9 @@ class SpaceObject {
 
     /**
      * Rotates this object by an angle.
-     * @param angle
+     * @param angle rotation angle
      */
-    rotate(angle: number) {
+    rotate(angle: number): void {
         this.orientation += angle;
         this.points.forEach(p => p.rotate(this.position.x, this.position.y, angle));
     }
@@ -596,6 +659,11 @@ class SpaceObject {
      * @param object
      */
     isHit(object: SpaceObject): boolean {
+        // test for thit with postion and points
+        if (Vector2D.getDistance(this.position, object.position) < this.size + object.size) {
+            // TODO: exact hit test
+            return true;
+        }
         return false;
     }
 
@@ -604,24 +672,7 @@ class SpaceObject {
      * @param object
      */
     hitBy(object: SpaceObject): void {
-        // TODO: damage should depend on velocity difference
-        let diff = this.velocity.clone().add(object.velocity.multiplyFactor(-1));
-        let magnitude = diff.getNorm();
 
-        // TODO: use magnitude
-        let impactEnergy = object.energy;
-        object.energy -= this.energy;
-        this.energy -= impactEnergy;
-        this.reactToHit(object);
-    }
-
-    /**
-     * Sub-class specific reaction to hits.
-     * @param object
-     */
-    reactToHit(object: SpaceObject): void {
-        // TODO: asteroids should split if low energy
-        // TODO: asteroids should be pushed away by hits
     }
 
     /**
@@ -661,23 +712,43 @@ class SpaceObject {
 
 class Spaceship extends SpaceObject {
     shots: Array<Shot>;
+    power: number;
     static acceleration: number = 2;
     static strokeStyle: string = "#0ff";
     static fillStyle: string = "#0ff";
 
-    constructor(gameSize, position, orientation, velocity, size, energy) {
+    constructor(
+        gameSize: Vector2D,
+        position: Vector2D,
+        orientation: number,
+        velocity: Vector2D,
+        size: number,
+        energy: number,
+        power: number
+    ) {
         super(gameSize, position, orientation, velocity, size, energy);
 
+        this.power = power;
         this.shots = [];
 
         // create shape
         let { x, y } = this.position;
         this.points = [
-            new Vector2D(x + 0.5 * size, y),
-            new Vector2D(x - 0.5 * size, y - 0.5 * size),
+            new Vector2D(x + size, y),
+            new Vector2D(x - 0.75 * size, y - 0.6 * size),
             new Vector2D(x - 0.2 * size, y),
-            new Vector2D(x - 0.5 * size, y + 0.5 * size),
+            new Vector2D(x - 0.75 * size, y + 0.6 * size),
         ];
+    }
+
+    /**
+     * React to a hit by another object.
+     * @param object
+     */
+    hitBy(object: SpaceObject): void {
+        // damage should depend on magnitude of velocity difference
+        let magnitude = Vector2D.getDistance(this.velocity, object.velocity);
+        this.energy -= object.energy * (magnitude / 100);
     }
 
     /**
@@ -695,14 +766,14 @@ class Spaceship extends SpaceObject {
             this.orientation,
             velocity,
             3,
-            3);
+            this.power);
         this.shots.push(shot);
     }
 
     /**
      * Shoots a laser.
      */
-    laser() {
+    laser(): void {
         // TODO: immediate shot in straight line
         let direction = this.getOrientationVector();
         let polygon = [
@@ -736,8 +807,10 @@ class Spaceship extends SpaceObject {
      * @param ctx canvas context
      */
     draw(ctx: CanvasRenderingContext2D): void {
+        // draw shield
+        drawCircle(ctx, this.position, this.size + 2, "#0f0", "#000");
+        // draw ship
         drawPolygon(ctx, this.points, Spaceship.strokeStyle, Spaceship.fillStyle);
-        drawCircle(ctx, this.position, 5, "#000", "#fff");
     }
 }
 
@@ -756,15 +829,19 @@ class Spaceship extends SpaceObject {
 
 
 class Shot extends SpaceObject {
-    originalEnergy: number;
-    static decayRate: number = 0.05;
+    static decayRate: number = 0.01;
     static strokeStyle: string = "#0f0";
     static fillStyle: string = "#0f0";
 
-    constructor(gameSize, position, orientation, velocity, size, energy) {
+    constructor(
+        gameSize: Vector2D,
+        position: Vector2D,
+        orientation: number,
+        velocity: Vector2D,
+        size: number,
+        energy: number
+    ) {
         super(gameSize, position, orientation, velocity, size, energy);
-
-        this.originalEnergy = energy;
     }
 
     /**
@@ -773,7 +850,7 @@ class Shot extends SpaceObject {
      */
     animate(): void {
         this.translate(this.velocity);
-        this.energy -= Shot.decayRate;
+        this.energy -= Shot.decayRate * this.originalEnergy;
     }
 
     /**
@@ -785,7 +862,8 @@ class Shot extends SpaceObject {
         if (this.energy < 0) {
             return;
         }
-        drawCircle(ctx, this.position, this.energy, Shot.strokeStyle, Shot.fillStyle);
+        let color = `rgba(0, 255, 0, ${this.energy / this.originalEnergy})`;
+        drawCircle(ctx, this.position, this.size, color, color);
     }
 }
 
@@ -804,14 +882,22 @@ class Asteroid extends SpaceObject {
     static strokeStyle: string = "#fff";
     static fillStyle: string = "rgba(255, 255, 255, 0.2)";
 
-    constructor(gameSize, position, orientation, velocity, size, energy) {
+    constructor(
+        gameSize: Vector2D,
+        position: Vector2D,
+        orientation: number,
+        velocity: Vector2D,
+        size: number,
+        energy: number
+    ) {
         super(gameSize, position, orientation, velocity, size, energy);
     }
 
     /**
-     * Split into 2 to 5 smaller asteroids that share the energy.
+     * TODO: Split into 2 to 5 smaller asteroids that share the energy.
      */
     split(): Array<Asteroid> {
+        // TODO: create drops
         return [];
     }
 
@@ -824,8 +910,35 @@ class Asteroid extends SpaceObject {
         if (this.energy < 0) {
             return;
         }
-        drawCircle(ctx, this.position, this.energy, Asteroid.strokeStyle, Asteroid.fillStyle);
+        drawCircle(ctx, this.position, this.size, Asteroid.strokeStyle, Asteroid.fillStyle);
         ctx.fillStyle = "#fff";
         ctx.fillText(this.energy.toFixed(2).toString(), this.position.x, this.position.y);
     }
 }
+
+
+// TODO: should decay after some time
+// TODO: only do something when colliding with ship
+class Drop extends SpaceObject {
+    effectType: string;
+    effect: number;
+
+    constructor(
+        gameSize: Vector2D,
+        position: Vector2D,
+        orientation: number,
+        velocity: Vector2D,
+        size: number,
+        energy: number
+    ) {
+        super(gameSize, position, orientation, velocity, size, energy);
+
+        let r = ~~random(0, 5);
+        let effectTypes = ["energy", "power", "shield", "life"];
+        this.effectType = effectTypes[r];
+        let effect = random(10, 100);
+    }
+}
+
+
+// #endregion space objects
