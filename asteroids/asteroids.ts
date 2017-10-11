@@ -1,5 +1,6 @@
 class Asteroids {
     gameSize: Vector2D;
+    score: number;
     ship: any;
     shorts: Array<Shot>;
     asteroids: Array<Asteroid>;
@@ -42,11 +43,11 @@ class Asteroids {
         this.gameRunning = false;
 
         // create ship
-        let size = Math.min(this.gameSize.x, this.gameSize.y) / 10;
+        let size = Math.min(this.gameSize.x, this.gameSize.y) / 12;
         let position = new Vector2D(this.gameSize.x / 2, this.gameSize.y / 2);
         let orientation = 0;
         let velocity = new Vector2D(0, 0);
-        this.ship = new Spaceship(position, orientation, velocity, size, 100);
+        this.ship = new Spaceship(this.gameSize, position, orientation, velocity, size, 100);
 
         // create asteroids
         this.asteroids = [];
@@ -55,7 +56,7 @@ class Asteroids {
             let aPos = Vector2D.randomVector(0, this.gameSize.x, 0, this.gameSize.y);
             let aVelocity = Vector2D.randomVector(-5, 5, -5, 5);
             let aSize = random(30, 100);
-            let a = new Asteroid(aPos, 0, aVelocity, aSize, 50);
+            let a = new Asteroid(this.gameSize, aPos, 0, aVelocity, aSize, 50);
             this.asteroids.push(a);
         }
 
@@ -65,7 +66,8 @@ class Asteroids {
             "Asteroids",
             "~~~ new game ~~~",
             "",
-            "press <space> to start or pause",
+            "press <space> to start and fire",
+            "press <p> to pause",
             "press <⯅> or <⯆> to move the ship",
             "press <⯇> or <⯈> to rotate the ship",
             "press <F5> to reset"
@@ -177,6 +179,15 @@ class Asteroids {
                 if (!this.gameStarted) {
                     this.startGame();
                 } else if (this.gameRunning) {
+                    this.ship.shoot();
+                } else {
+                    this.resumeGame();
+                }
+                break;
+
+            case "p":
+                // p: pause or resume
+                if (this.gameRunning) {
                     this.pauseGame();
                 } else {
                     this.resumeGame();
@@ -217,9 +228,19 @@ class Asteroids {
             }
         }
 
+        // animate shots
+        _this.ship.shots.forEach(s => s.animate());
+        // remove ceased shots
+        _this.ship.shots = _this.ship.shots.filter(s => !s.isDestroyed());
+
         // TODO: test shots and asteroids for collisions
+        let destroyedObject: SpaceObject = null;
+
+        // TODO: score
+        // _this.score += destroyedObject.originalEnergy;
 
 
+        // draw game
         _this.updateUI();
     }
 
@@ -253,10 +274,10 @@ class Asteroids {
         this.ship.draw(this.ctx);
         // shots
         this.ship.shots.forEach(s => s.draw(this.ctx));
-        // time elapsed
+        // ship energy, time
         this.ctx.fillStyle = "#fff";
         this.ctx.fillText(
-            `time ${~~(this.timeElapsed / 1000)}`,
+            `energy: ${~~this.ship.energy} time ${~~(this.timeElapsed / 1000)}`,
             this.canvas.width / 2,
             25
         );
@@ -376,7 +397,7 @@ class Vector2D {
     }
 
     /**
-     * Returns a unit vector poiting in the direction of orientation
+     * Returns a new unit vector poiting in the direction of orientation
      * @param orientation
      */
     static getUnitVectorFromOrientation(orientation: number) {
@@ -490,23 +511,21 @@ class SpaceObject {
     orientation: number;
     velocity: Vector2D;
     energy: number;
+    originalEnergy: number;
     size: number;
-    strokeStyle: string;
-    fillStyle: string;
+    static strokeStyle: string = "#fff";
+    static fillStyle: string = "rgba(255, 255, 255, 0.2)";
     gameSize: Vector2D;
-
     points: Array<Vector2D>;
 
-    constructor(position, orientation, velocity, size, energy) {
+    constructor(gameSize, position, orientation, velocity, size, energy) {
+        this.gameSize = gameSize;
         this.position = position;
         this.orientation = orientation;
         this.velocity = velocity;
         this.size = size;
         this.energy = energy;
-
-        this.fillStyle = "rgba(255, 255, 255, 0.2)";
-        this.strokeStyle = "#fff";
-
+        this.originalEnergy = energy;
         this.points = [];
     }
 
@@ -524,7 +543,6 @@ class SpaceObject {
         this.translate(this.velocity);
     }
 
-    // TODO: objects should reenter on the opposite site if disappearing
     /**
      * Tranlates this object by a vector
      * @param vector
@@ -532,6 +550,36 @@ class SpaceObject {
     translate(vector: Vector2D): void {
         this.position.translateV(vector);
         this.points.forEach(p => p.translateV(vector));
+
+
+        // objects should reenter on the opposite site if disappearing
+        let margin = this.size;
+        if (this.position.x < -margin) {
+            this.position.x += this.gameSize.x + 2 * margin;
+            this.points = this.points.map(p => {
+                p.x += this.gameSize.x + 2 * margin;
+                return p;
+            });
+        } else if (this.position.x > this.gameSize.x + margin) {
+            this.position.x -= this.gameSize.x + 2 * margin;
+            this.points = this.points.map(p => {
+                p.x -= this.gameSize.x + 2 * margin;
+                return p;
+            });
+        }
+        if (this.position.y < -margin) {
+            this.position.y += this.gameSize.y + 2 * margin;
+            this.points = this.points.map(p => {
+                p.y += this.gameSize.y + 2 * margin;
+                return p;
+            });
+        } else if (this.position.y > this.gameSize.y + margin) {
+            this.position.y -= this.gameSize.y + 2 * margin;
+            this.points = this.points.map(p => {
+                p.y -= this.gameSize.y + 2 * margin;
+                return p;
+            });
+        }
     }
 
     /**
@@ -588,7 +636,7 @@ class SpaceObject {
      * @param ctx canvas context
      */
     draw(ctx: CanvasRenderingContext2D): void {
-        drawCircle(ctx, this.position, this.size, this.strokeStyle, this.fillStyle);
+        drawCircle(ctx, this.position, this.size, SpaceObject.strokeStyle, SpaceObject.fillStyle);
     }
 
     /**
@@ -613,9 +661,12 @@ class SpaceObject {
 
 class Spaceship extends SpaceObject {
     shots: Array<Shot>;
+    static acceleration: number = 2;
+    static strokeStyle: string = "#0ff";
+    static fillStyle: string = "#0ff";
 
-    constructor(position, orientation, velocity, size, energy) {
-        super(position, orientation, velocity, size, energy);
+    constructor(gameSize, position, orientation, velocity, size, energy) {
+        super(gameSize, position, orientation, velocity, size, energy);
 
         this.shots = [];
 
@@ -627,31 +678,65 @@ class Spaceship extends SpaceObject {
             new Vector2D(x - 0.2 * size, y),
             new Vector2D(x - 0.5 * size, y + 0.5 * size),
         ];
-
-        this.fillStyle = "#0ff";
     }
 
+    /**
+     * Shoots a new Shot object.
+     */
     shoot(): void {
-        // TODO: velocity mixes ship velocity and ship orientation
-        let velocity = new Vector2D(10, 10);
-        let shot = new Shot(this.position, this.orientation, velocity, 3, 3);
+        // velocity mixes ship velocity and ship orientation
+        let velocity = this.getOrientationVector()
+            .multiplyFactor(2)
+            .add(this.velocity.clone().getDirection())
+            .multiplyFactor(5);
+        let shot = new Shot(
+            this.gameSize,
+            this.position.clone(),
+            this.orientation,
+            velocity,
+            3,
+            3);
         this.shots.push(shot);
     }
 
+    /**
+     * Shoots a laser.
+     */
+    laser() {
+        // TODO: immediate shot in straight line
+        let direction = this.getOrientationVector();
+        let polygon = [
+            this.position,
+            direction.multiplyFactor(2000).add(this.position)
+        ];
+        // drawPolygon(ctx, this.points, this.strokeStyle, this.fillStyle);
+    }
+
+    /**
+     * Accelerates the ship forward.
+     */
     increaseVelocity(): void {
         let direction = this.getOrientationVector();
-        let delta = direction.multiplyFactor(2);
+        let delta = direction.multiplyFactor(Spaceship.acceleration);
         this.velocity.add(delta);
     }
 
+    /**
+     * Accelerates the ship backward.
+     */
     decreaseVelocity(): void {
         let direction = this.getOrientationVector();
-        let delta = direction.multiplyFactor(-2);
+        let delta = direction.multiplyFactor(-Spaceship.acceleration);
         this.velocity.add(delta);
     }
 
+    /**
+     * @overwrite
+     * Draws this object onto ctx.
+     * @param ctx canvas context
+     */
     draw(ctx: CanvasRenderingContext2D): void {
-        drawPolygon(ctx, this.points, this.strokeStyle, this.fillStyle);
+        drawPolygon(ctx, this.points, Spaceship.strokeStyle, Spaceship.fillStyle);
         drawCircle(ctx, this.position, 5, "#000", "#fff");
     }
 }
@@ -671,9 +756,36 @@ class Spaceship extends SpaceObject {
 
 
 class Shot extends SpaceObject {
-    constructor(position, orientation, velocity, size, energy) {
-        super(position, orientation, velocity, size, energy);
-        this.fillStyle = "#0f0";
+    originalEnergy: number;
+    static decayRate: number = 0.05;
+    static strokeStyle: string = "#0f0";
+    static fillStyle: string = "#0f0";
+
+    constructor(gameSize, position, orientation, velocity, size, energy) {
+        super(gameSize, position, orientation, velocity, size, energy);
+
+        this.originalEnergy = energy;
+    }
+
+    /**
+     * @overwrite
+     * Moves this object by its velocity.
+     */
+    animate(): void {
+        this.translate(this.velocity);
+        this.energy -= Shot.decayRate;
+    }
+
+    /**
+     * @overwrite
+     * Draws this object onto ctx.
+     * @param ctx canvas context
+     */
+    draw(ctx: CanvasRenderingContext2D): void {
+        if (this.energy < 0) {
+            return;
+        }
+        drawCircle(ctx, this.position, this.energy, Shot.strokeStyle, Shot.fillStyle);
     }
 }
 
@@ -689,8 +801,11 @@ class Shot extends SpaceObject {
 
 
 class Asteroid extends SpaceObject {
-    constructor(position, orientation, velocity, size, energy) {
-        super(position, orientation, velocity, size, energy);
+    static strokeStyle: string = "#fff";
+    static fillStyle: string = "rgba(255, 255, 255, 0.2)";
+
+    constructor(gameSize, position, orientation, velocity, size, energy) {
+        super(gameSize, position, orientation, velocity, size, energy);
     }
 
     /**
@@ -698,5 +813,19 @@ class Asteroid extends SpaceObject {
      */
     split(): Array<Asteroid> {
         return [];
+    }
+
+    /**
+     * @overwrite
+     * Draws this object onto ctx.
+     * @param ctx canvas context
+     */
+    draw(ctx: CanvasRenderingContext2D): void {
+        if (this.energy < 0) {
+            return;
+        }
+        drawCircle(ctx, this.position, this.energy, Asteroid.strokeStyle, Asteroid.fillStyle);
+        ctx.fillStyle = "#fff";
+        ctx.fillText(this.energy.toFixed(2).toString(), this.position.x, this.position.y);
     }
 }
