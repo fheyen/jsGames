@@ -89,7 +89,8 @@ class Hangman {
     }
 
     drawTime(_this) {
-
+        _this.timeElapsed += _this.intervalTime;
+        _this.updateUI();
     }
 
     /**
@@ -138,7 +139,7 @@ class Hangman {
         this.ctx.fillStyle = "#000";
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-        // TODO: word
+        // TODO: word and _ _ _
 
         // TODO: gallow
 
