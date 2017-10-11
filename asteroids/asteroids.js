@@ -39,7 +39,7 @@ var Asteroids = /** @class */ (function () {
         var position = new Vector2D(this.gameSize.x / 2, this.gameSize.y / 2);
         var orientation = 0;
         var velocity = new Vector2D(0, 0);
-        this.ship = new Spaceship(this.gameSize, position, orientation, velocity, size, 1000, 10);
+        this.ship = new Spaceship(this.gameSize, position, orientation, velocity, size, 100, 5);
         // create asteroids
         this.asteroids = [];
         var number = 3;
@@ -47,7 +47,7 @@ var Asteroids = /** @class */ (function () {
             var aPos = Vector2D.randomVector(0, this.gameSize.x, 0, this.gameSize.y);
             var aVelocity = Vector2D.randomVector(-2, 2, -2, 2);
             var aSize = random(50, 100);
-            var aEnergy = Math.pow(aSize, 2) / 10;
+            var aEnergy = Math.pow(aSize, 2) / 5;
             var a = new Asteroid(this.gameSize, aPos, 0, aVelocity, aSize, aEnergy);
             this.asteroids.push(a);
         }
@@ -165,7 +165,7 @@ var Asteroids = /** @class */ (function () {
         // abbreviations
         var as = _this.asteroids;
         // check if player has won
-        if (_this.asteroids.length === 0) {
+        if (as.length === 0) {
             _this.endGame(true);
             return;
         }
@@ -203,13 +203,13 @@ var Asteroids = /** @class */ (function () {
         var deltaScore = 0;
         for (var i = 0; i < as.length; i++) {
             var asteroid = as[i];
-            for (var j = 0; j < _this.ship.shots.length; j++) {
-                var shot = _this.ship.shots[j];
+            for (var j_1 = 0; j_1 < _this.ship.shots.length; j_1++) {
+                var shot = _this.ship.shots[j_1];
                 if (asteroid.isHit(shot)) {
                     // reduce energy of asteroid
-                    var _a = asteroid.hitBy(shot), drops = _a[0], children = _a[1];
-                    if (drops !== null) {
-                        _this.drops = _this.drops.concat(drops);
+                    var _a = asteroid.hitBy(shot), drop = _a[0], children = _a[1];
+                    if (drop !== null) {
+                        _this.drops.push(drop);
                     }
                     if (children !== null) {
                         _this.asteroids = _this.asteroids.concat(children);
@@ -237,6 +237,12 @@ var Asteroids = /** @class */ (function () {
                     asteroid1.hitBy(asteroid2);
                     asteroid2.hitBy(asteroid1);
                 }
+            }
+        }
+        // test ship and drops for collisions
+        for (var i = 0; i < _this.drops.length; i++) {
+            if (_this.ship.isHit(_this.drops[i])) {
+                _this.drops[i].collect(_this.ship, _this);
             }
         }
         // decay objects
@@ -297,6 +303,8 @@ var Asteroids = /** @class */ (function () {
         if (drawShip) {
             this.ship.draw(this.ctx);
         }
+        // drops
+        this.drops.forEach(function (d) { return d.draw(_this.ctx); });
         // shots
         this.ship.shots.forEach(function (s) { return s.draw(_this.ctx); });
         // ship energy, time
@@ -385,7 +393,6 @@ function drawCircle(ctx, center, radius, stroke, fill, startAngle, endAngle) {
     ctx.restore();
 }
 // #endregion helper functions
-// #region Vector2D
 /**
  * Vector class for 2D points and vectors.
  */
@@ -516,13 +523,15 @@ var Vector2D = /** @class */ (function () {
     };
     return Vector2D;
 }());
-// #endregion Vector2D
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 ///////////////////////    S P A C E   -   O B J E C T S   ///////////////////
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 // #region space objects
+/**
+ * General space object class from which all game objects in this game are derived
+ */
 var SpaceObject = /** @class */ (function () {
     function SpaceObject(gameSize, position, orientation, velocity, size, energy) {
         this.gameSize = gameSize;
@@ -635,6 +644,9 @@ var SpaceObject = /** @class */ (function () {
     SpaceObject.fillStyle = "rgba(255, 255, 255, 0.2)";
     return SpaceObject;
 }());
+/**
+ * Space ship class
+ */
 var Spaceship = /** @class */ (function (_super) {
     __extends(Spaceship, _super);
     function Spaceship(gameSize, position, orientation, velocity, size, energy, power) {
@@ -661,11 +673,21 @@ var Spaceship = /** @class */ (function (_super) {
         if (object instanceof Asteroid) {
             // damage should depend on magnitude of velocity difference
             var magnitude = Vector2D.getDistance(this.velocity, object.velocity);
-            this.energy -= object.energy * (magnitude / 50);
-        }
-        else if (object instanceof Drop) {
-            // collact drop
-            object.collect(this);
+            var damage = object.energy * (magnitude / 50);
+            if (this.shield >= damage) {
+                // shield blocks damage
+                this.shield -= damage;
+                damage = 0;
+            }
+            else {
+                // shield blocks some damage
+                damage -= this.shield;
+                this.shield = 0;
+            }
+            this.energy -= damage;
+            // give some damage to asteroid too
+            var ownDamage = 0.01 * (this.shield + this.energy / 100) / object.energy;
+            object.energy -= ownDamage;
         }
     };
     /**
@@ -721,16 +743,21 @@ var Spaceship = /** @class */ (function (_super) {
      */
     Spaceship.prototype.draw = function (ctx) {
         // draw shield
-        drawCircle(ctx, this.position, this.size + 2, "rgba(0, 255, 255, " + this.shield / 100 + ")", "rgba(0, 0, 0, 0)");
+        if (this.shield > 0) {
+            drawCircle(ctx, this.position, this.size + 2, "rgba(0, 255, 255, " + this.shield / 100 + ")", "rgba(0, 0, 0, 0)");
+        }
         // draw ship
         drawPolygon(ctx, this.points, Spaceship.strokeStyle, Spaceship.fillStyle);
     };
-    Spaceship.decayRate = 0.01; // shield decay rate
+    Spaceship.decayRate = 0.05; // shield decay rate
     Spaceship.acceleration = 2;
     Spaceship.strokeStyle = "#0ff";
     Spaceship.fillStyle = "#0ff";
     return Spaceship;
 }(SpaceObject));
+/**
+ * Shot class.
+ */
 var Shot = /** @class */ (function (_super) {
     __extends(Shot, _super);
     function Shot(gameSize, position, orientation, velocity, size, energy) {
@@ -759,14 +786,20 @@ var Shot = /** @class */ (function (_super) {
     Shot.fillStyle = "#0f0";
     return Shot;
 }(SpaceObject));
+/**
+ * Asteroid class.
+ */
 var Asteroid = /** @class */ (function (_super) {
     __extends(Asteroid, _super);
     function Asteroid(gameSize, position, orientation, velocity, size, energy) {
         return _super.call(this, gameSize, position, orientation, velocity, size, energy) || this;
+        // TODO: generate polygon that approximates the
+        // circle by using random angles and radii
     }
     /**
      * React to a hit by another object.
      * @param object
+     * @return drops and child asteroids if there are any
      */
     Asteroid.prototype.hitBy = function (object) {
         if (object instanceof Shot) {
@@ -777,7 +810,7 @@ var Asteroid = /** @class */ (function (_super) {
                 // destroyed
                 return [this.createDrops(), null];
             }
-            else if (this.energy > 1000 && this.energy <= 0.5 * this.originalEnergy) {
+            else if (this.energy > 100 && this.energy <= 0.5 * this.originalEnergy) {
                 // split
                 return [this.createDrops(), this.split()];
             }
@@ -806,7 +839,7 @@ var Asteroid = /** @class */ (function (_super) {
         var children = [];
         for (var i = 0; i < numberChildren; i++) {
             var energy = void 0, energyFraction = void 0, size = void 0;
-            if (i !== numberChildren - 1 && this.energy > 200) {
+            if (i !== numberChildren - 1 && this.energy > 50) {
                 // children share energy
                 energyFraction = random(0, 0.5);
                 energy = this.energy * energyFraction;
@@ -831,13 +864,11 @@ var Asteroid = /** @class */ (function (_super) {
      * Creates 1 to 3 drops.
      */
     Asteroid.prototype.createDrops = function () {
-        var numberDrops = ~~random(1, 4);
-        var drops = [];
-        for (var i = 0; i < numberDrops; i++) {
-            var drop = new Drop(this.gameSize, this.position.clone().add(Vector2D.randomVector(-5, 5, -5, 5)), this.orientation, this.velocity.clone().add(Vector2D.randomVector(-5, 5, -5, 5)), 10, 100);
-            drops.push(drop);
+        // only create drop with some probability
+        if (random(0, 1) < 0.25) {
+            return null;
         }
-        return drops;
+        return new Drop(this.gameSize, this.position.clone().add(Vector2D.randomVector(-5, 5, -5, 5)), this.orientation, this.velocity.clone().add(Vector2D.randomVector(-5, 5, -5, 5)), 10, 100);
     };
     /**
      * @overwrite
@@ -864,8 +895,8 @@ var Drop = /** @class */ (function (_super) {
     __extends(Drop, _super);
     function Drop(gameSize, position, orientation, velocity, size, energy) {
         var _this = _super.call(this, gameSize, position, orientation, velocity, size, energy) || this;
-        var r = ~~random(0, 5);
-        var effectTypes = ["energy", "power", "shield", "life"];
+        var effectTypes = ["energy", "power", "shield", "life", "score"];
+        var r = ~~random(0, effectTypes.length);
         _this.effectType = effectTypes[r];
         switch (_this.effectType) {
             case "energy":
@@ -884,8 +915,15 @@ var Drop = /** @class */ (function (_super) {
                 _this.effect = 1;
                 _this.color = "255, 0, 0";
                 break;
+            case "score":
+                _this.effect = ~~random(-1000, 10000);
+                _this.color = "255, 215, 0";
+                break;
             default:
                 break;
+        }
+        if (!_this.effectType) {
+            console.log(r);
         }
         return _this;
     }
@@ -899,7 +937,7 @@ var Drop = /** @class */ (function (_super) {
      * Allow the ship to collect this drop
      * @param collector
      */
-    Drop.prototype.collect = function (collector) {
+    Drop.prototype.collect = function (collector, game) {
         switch (this.effectType) {
             case "energy":
                 collector.energy += this.effect;
@@ -913,9 +951,14 @@ var Drop = /** @class */ (function (_super) {
             case "life":
                 collector.lifes += this.effect;
                 break;
+            case "score":
+                game.score += this.effect;
+                break;
             default:
                 break;
         }
+        // destroy drop
+        this.energy = 0;
     };
     /**
      * @overwrite
@@ -926,11 +969,10 @@ var Drop = /** @class */ (function (_super) {
         if (this.energy < 0) {
             return;
         }
-        drawCircle(ctx, this.position, this.size, Asteroid.strokeStyle, Asteroid.fillStyle);
         ctx.fillStyle = "rgba(" + this.color + ", " + this.energy / this.originalEnergy + ")";
-        ctx.fillText(this.effectType + " +" + this.effect, this.position.x, this.position.y);
+        ctx.fillText(this.effectType + " " + this.effect, this.position.x, this.position.y + 10);
     };
-    Drop.decayRate = 0.01;
+    Drop.decayRate = 0.001;
     return Drop;
 }(SpaceObject));
 // #endregion space objects 

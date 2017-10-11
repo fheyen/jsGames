@@ -54,8 +54,8 @@ class Asteroids {
             orientation,
             velocity,
             size,
-            1000,
-            10
+            100,
+            5
         );
 
         // create asteroids
@@ -65,7 +65,7 @@ class Asteroids {
             let aPos = Vector2D.randomVector(0, this.gameSize.x, 0, this.gameSize.y);
             let aVelocity = Vector2D.randomVector(-2, 2, -2, 2);
             let aSize = random(50, 100);
-            let aEnergy = aSize ** 2 / 10;
+            let aEnergy = aSize ** 2 / 5;
             let a = new Asteroid(this.gameSize, aPos, 0, aVelocity, aSize, aEnergy);
             this.asteroids.push(a);
         }
@@ -211,13 +211,11 @@ class Asteroids {
      * @param _this this object
      */
     animate(_this: Asteroids): void {
-
-
         // abbreviations
         let as = _this.asteroids;
 
         // check if player has won
-        if (_this.asteroids.length === 0) {
+        if (as.length === 0) {
             _this.endGame(true);
             return;
         }
@@ -260,15 +258,15 @@ class Asteroids {
         let deltaScore = 0;
         for (let i = 0; i < as.length; i++) {
             let asteroid = as[i];
-            for (var j = 0; j < _this.ship.shots.length; j++) {
+            for (let j = 0; j < _this.ship.shots.length; j++) {
                 let shot = _this.ship.shots[j];
 
                 if (asteroid.isHit(shot)) {
                     // reduce energy of asteroid
-                    let [drops, children] = asteroid.hitBy(shot);
+                    let [drop, children] = asteroid.hitBy(shot);
 
-                    if (drops !== null) {
-                        _this.drops = _this.drops.concat(drops);
+                    if (drop !== null) {
+                        _this.drops.push(drop);
                     }
                     if (children !== null) {
                         _this.asteroids = _this.asteroids.concat(children);
@@ -304,6 +302,13 @@ class Asteroids {
             }
         }
 
+        // test ship and drops for collisions
+        for (let i = 0; i < _this.drops.length; i++) {
+            if (_this.ship.isHit(_this.drops[i])) {
+                _this.drops[i].collect(_this.ship, _this);
+            }
+        }
+
         // decay objects
         _this.ship.shots.forEach(s => s.decay());
         _this.drops.forEach(d => d.decay());
@@ -320,7 +325,6 @@ class Asteroids {
             _this.fadeUI("rgba(255, 0, 0, 0.2)");
         }
     }
-
 
     // #region UI
 
@@ -366,6 +370,8 @@ class Asteroids {
         if (drawShip) {
             this.ship.draw(this.ctx);
         }
+        // drops
+        this.drops.forEach(d => d.draw(this.ctx));
         // shots
         this.ship.shots.forEach(s => s.draw(this.ctx));
         // ship energy, time
@@ -478,15 +484,6 @@ function drawCircle(ctx: CanvasRenderingContext2D, center: Vector2D, radius: num
 }
 
 // #endregion helper functions
-
-
-
-
-
-
-
-// #region Vector2D
-
 
 
 /**
@@ -639,12 +636,6 @@ class Vector2D {
 }
 
 
-// #endregion Vector2D
-
-
-
-
-
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
@@ -655,7 +646,9 @@ class Vector2D {
 // #region space objects
 
 
-
+/**
+ * General space object class from which all game objects in this game are derived
+ */
 class SpaceObject {
     position: Vector2D;
     orientation: number;
@@ -794,19 +787,15 @@ class SpaceObject {
 
 
 
-
-
-
-
-
-
-
+/**
+ * Space ship class
+ */
 class Spaceship extends SpaceObject {
     shots: Array<Shot>;
     power: number;
     shield: number;
     lifes: number;
-    static decayRate: number = 0.01; // shield decay rate
+    static decayRate: number = 0.05; // shield decay rate
     static acceleration: number = 2;
     static strokeStyle: string = "#0ff";
     static fillStyle: string = "#0ff";
@@ -845,10 +834,20 @@ class Spaceship extends SpaceObject {
         if (object instanceof Asteroid) {
             // damage should depend on magnitude of velocity difference
             let magnitude = Vector2D.getDistance(this.velocity, object.velocity);
-            this.energy -= object.energy * (magnitude / 50);
-        } else if (object instanceof Drop) {
-            // collact drop
-            object.collect(this);
+            let damage = object.energy * (magnitude / 50);
+            if (this.shield >= damage) {
+                // shield blocks damage
+                this.shield -= damage;
+                damage = 0;
+            } else {
+                // shield blocks some damage
+                damage -= this.shield;
+                this.shield = 0;
+            }
+            this.energy -= damage;
+            // give some damage to asteroid too
+            let ownDamage = 0.01 * (this.shield + this.energy / 100) / object.energy;
+            object.energy -= ownDamage;
         }
     }
 
@@ -916,7 +915,9 @@ class Spaceship extends SpaceObject {
      */
     draw(ctx: CanvasRenderingContext2D): void {
         // draw shield
-        drawCircle(ctx, this.position, this.size + 2, `rgba(0, 255, 255, ${this.shield / 100})`, "rgba(0, 0, 0, 0)");
+        if (this.shield > 0) {
+            drawCircle(ctx, this.position, this.size + 2, `rgba(0, 255, 255, ${this.shield / 100})`, "rgba(0, 0, 0, 0)");
+        }
         // draw ship
         drawPolygon(ctx, this.points, Spaceship.strokeStyle, Spaceship.fillStyle);
     }
@@ -924,13 +925,9 @@ class Spaceship extends SpaceObject {
 
 
 
-
-
-
-
-
-
-
+/**
+ * Shot class.
+ */
 class Shot extends SpaceObject {
     static decayRate: number = 0.01;
     static strokeStyle: string = "#0f0";
@@ -970,12 +967,9 @@ class Shot extends SpaceObject {
 
 
 
-
-
-
-
-
-
+/**
+ * Asteroid class.
+ */
 class Asteroid extends SpaceObject {
     static strokeStyle: string = "#fff";
     static fillStyle: string = "rgba(255, 255, 255, 0.2)";
@@ -989,13 +983,17 @@ class Asteroid extends SpaceObject {
         energy: number
     ) {
         super(gameSize, position, orientation, velocity, size, energy);
+
+        // TODO: generate polygon that approximates the
+        // circle by using random angles and radii
     }
 
     /**
      * React to a hit by another object.
      * @param object
+     * @return drops and child asteroids if there are any
      */
-    hitBy(object: SpaceObject): [Array<Drop>, Array<Asteroid>] {
+    hitBy(object: SpaceObject): [Drop, Array<Asteroid>] {
         if (object instanceof Shot) {
             // asteroid was shot
             this.energy -= object.energy;
@@ -1004,7 +1002,7 @@ class Asteroid extends SpaceObject {
             if (this.isDestroyed()) {
                 // destroyed
                 return [this.createDrops(), null];
-            } else if (this.energy > 1000 && this.energy <= 0.5 * this.originalEnergy) {
+            } else if (this.energy > 100 && this.energy <= 0.5 * this.originalEnergy) {
                 // split
                 return [this.createDrops(), this.split()];
             } else {
@@ -1032,7 +1030,7 @@ class Asteroid extends SpaceObject {
         let children = [];
         for (let i = 0; i < numberChildren; i++) {
             let energy, energyFraction, size;
-            if (i !== numberChildren - 1 && this.energy > 200) {
+            if (i !== numberChildren - 1 && this.energy > 50) {
                 // children share energy
                 energyFraction = random(0, 0.5);
                 energy = this.energy * energyFraction;
@@ -1064,21 +1062,19 @@ class Asteroid extends SpaceObject {
     /**
      * Creates 1 to 3 drops.
      */
-    createDrops(): Array<Drop> {
-        let numberDrops = ~~random(1, 4);
-        let drops = [];
-        for (let i = 0; i < numberDrops; i++) {
-            let drop = new Drop(
-                this.gameSize,
-                this.position.clone().add(Vector2D.randomVector(-5, 5, -5, 5)),
-                this.orientation,
-                this.velocity.clone().add(Vector2D.randomVector(-5, 5, -5, 5)),
-                10,
-                100
-            );
-            drops.push(drop);
+    createDrops(): Drop {
+        // only create drop with some probability
+        if (random(0, 1) < 0.25) {
+            return null;
         }
-        return drops;
+        return new Drop(
+            this.gameSize,
+            this.position.clone().add(Vector2D.randomVector(-5, 5, -5, 5)),
+            this.orientation,
+            this.velocity.clone().add(Vector2D.randomVector(-5, 5, -5, 5)),
+            10,
+            100
+        );
     }
 
     /**
@@ -1101,7 +1097,7 @@ class Asteroid extends SpaceObject {
  * They may have adverse effects.
  */
 class Drop extends SpaceObject {
-    static decayRate: number = 0.01;
+    static decayRate: number = 0.001;
     effectType: string;
     effect: number;
     color: string;
@@ -1116,8 +1112,8 @@ class Drop extends SpaceObject {
     ) {
         super(gameSize, position, orientation, velocity, size, energy);
 
-        let r = ~~random(0, 5);
-        let effectTypes = ["energy", "power", "shield", "life"];
+        let effectTypes = ["energy", "power", "shield", "life", "score"];
+        let r = ~~random(0, effectTypes.length);
         this.effectType = effectTypes[r];
         switch (this.effectType) {
             case "energy":
@@ -1140,8 +1136,17 @@ class Drop extends SpaceObject {
                 this.color = "255, 0, 0";
                 break;
 
+            case "score":
+                this.effect = ~~random(-1000, 10000);
+                this.color = "255, 215, 0";
+                break;
+
             default:
                 break;
+        }
+
+        if (!this.effectType) {
+            console.log(r);
         }
     }
 
@@ -1156,7 +1161,7 @@ class Drop extends SpaceObject {
      * Allow the ship to collect this drop
      * @param collector
      */
-    collect(collector: Spaceship) {
+    collect(collector: Spaceship, game: Asteroids): void {
         switch (this.effectType) {
             case "energy":
                 collector.energy += this.effect;
@@ -1174,9 +1179,15 @@ class Drop extends SpaceObject {
                 collector.lifes += this.effect;
                 break;
 
+            case "score":
+                game.score += this.effect;
+                break;
+
             default:
                 break;
         }
+        // destroy drop
+        this.energy = 0;
     }
 
     /**
@@ -1188,9 +1199,8 @@ class Drop extends SpaceObject {
         if (this.energy < 0) {
             return;
         }
-        drawCircle(ctx, this.position, this.size, Asteroid.strokeStyle, Asteroid.fillStyle);
         ctx.fillStyle = `rgba(${this.color}, ${this.energy / this.originalEnergy})`;
-        ctx.fillText(`${this.effectType} +${this.effect}`, this.position.x, this.position.y);
+        ctx.fillText(`${this.effectType} ${this.effect}`, this.position.x, this.position.y + 10);
     }
 }
 
