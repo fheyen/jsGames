@@ -1,3 +1,6 @@
+import * as lib from "../lib/lib.js";
+import Vector2D from "../lib/vector2d.js";
+
 class Asteroids {
     gameSize: Vector2D;
     score: number;
@@ -14,6 +17,7 @@ class Asteroids {
     interval: any;
 
     constructor() {
+        // game size is set to window size
         this.gameSize = new Vector2D(
             window.innerWidth,
             window.innerHeight
@@ -36,7 +40,7 @@ class Asteroids {
     /**
      * Resets the game to the initial conditions.
      */
-    reset() {
+    reset(): void {
         this.timeElapsed = 0;
         this.score = 0;
         this.gameStarted = false;
@@ -65,7 +69,7 @@ class Asteroids {
         for (let i = 0; i < number; i++) {
             let aPos = Vector2D.randomVector(0, this.gameSize.x, 0, this.gameSize.y);
             let aVelocity = Vector2D.randomVector(-1, 1, -1, 1);
-            let aSize = random(50, 100);
+            let aSize = lib.random(50, 100);
             let aEnergy = aSize ** 2 / 5;
             let a = new Asteroid(this.gameSize, aPos, 0, aVelocity, aSize, aEnergy);
             this.asteroids.push(a);
@@ -228,11 +232,10 @@ class Asteroids {
         // update object positions
         as.forEach(o => o.animate());
         _this.ship.animate();
-        _this.ship.shots.forEach(s => s.animate());
-        _this.drops.forEach(d => d.animate());
+        _this.ship.shots.forEach((s: Shot) => s.animate());
+        _this.drops.forEach((d: Drop) => d.animate());
 
         // test for crash
-        // TODO: use quadtree
         let crashed = false;
         for (let i = 0; i < as.length; i++) {
             if (_this.ship.isHit(as[i])) {
@@ -256,7 +259,6 @@ class Asteroids {
         }
 
         // test shots and asteroids for collisions
-        // TODO: use quadtree
         let deltaScore = 0;
         for (let i = 0; i < as.length; i++) {
             let asteroid = as[i];
@@ -286,7 +288,6 @@ class Asteroids {
         _this.score += deltaScore;
 
         // test asteroids for collision with each other
-        // TODO: use quadtree
         for (let i = 0; i < as.length; i++) {
             let asteroid1 = as[i];
             for (var j = 0; j < as.length; j++) {
@@ -313,12 +314,12 @@ class Asteroids {
 
         // decay objects
         _this.ship.decay();
-        _this.ship.shots.forEach(s => s.decay());
+        _this.ship.shots.forEach((s: Shot) => s.decay());
         _this.drops.forEach(d => d.decay());
 
         // remove destroyed objects
         _this.asteroids = _this.asteroids.filter(a => !a.isDestroyed());
-        _this.ship.shots = _this.ship.shots.filter(s => !s.isDestroyed());
+        _this.ship.shots = _this.ship.shots.filter((s: Shot) => !s.isDestroyed());
         _this.drops = _this.drops.filter(d => !d.isDestroyed());
 
         // draw game
@@ -376,7 +377,7 @@ class Asteroids {
         // drops
         this.drops.forEach(d => d.draw(this.ctx));
         // shots
-        this.ship.shots.forEach(s => s.draw(this.ctx));
+        this.ship.shots.forEach((s: Shot) => s.draw(this.ctx));
         // ship energy, time
         this.ctx.fillStyle = "#fff";
         this.ctx.fillText(
@@ -421,232 +422,12 @@ class Asteroids {
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-///////////////////////         H E L P E R S           //////////////////////
-//////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////
-
-
-// #region helper functions
-
-/**
- * Returns a pseudorandom number in [min, max)
- */
-function random(min: number, max: number): number {
-    return min + (Math.random() * (max - min));
-}
-
-/**
- * Draws a polygon onto ctx.
- * @param ctx canvas context
- * @param points points
- * @param stroke stroke style
- * @param fill fill style
- */
-function drawPolygon(ctx: CanvasRenderingContext2D, points: Array<Vector2D>, stroke: string, fill: string): void {
-    ctx.save();
-    ctx.beginPath();
-    ctx.moveTo(points[0].x, points[0].y);
-    for (var i = 1; i < points.length; i++) {
-        ctx.lineTo(points[i].x, points[i].y);
-    }
-    ctx.closePath();
-    if (stroke) {
-        ctx.strokeStyle = stroke;
-        ctx.stroke();
-    }
-    if (fill) {
-        ctx.fillStyle = fill;
-        ctx.fill();
-    }
-    ctx.restore();
-}
-
-/**
- * Draws a cirlce onto ctx.
- * @param ctx canvas context
- * @param center center point
- * @param radius radius
- * @param stroke stroke style
- * @param fill fill style
- * @param startAngle start angle
- * @param endAngle end angle
- */
-function drawCircle(ctx: CanvasRenderingContext2D, center: Vector2D, radius: number, stroke: string, fill: string, startAngle: number = 0, endAngle: number = 2 * Math.PI): void {
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(center.x, center.y, radius, startAngle, endAngle);
-    if (stroke) {
-        ctx.strokeStyle = stroke;
-        ctx.stroke();
-    }
-    if (fill) {
-        ctx.fillStyle = fill;
-        ctx.fill();
-    }
-    ctx.restore();
-}
-
-// #endregion helper functions
-
-
-/**
- * Vector class for 2D points and vectors.
- */
-class Vector2D {
-    x: number;
-    y: number;
-
-    /**
-     * @param {number} x x-coordinate
-     * @param {number} y y-coordinate
-     */
-    constructor(x: number, y: number) {
-        this.x = x;
-        this.y = y;
-    }
-
-
-    // #region statics
-
-    /**
-     * Creates and returns a vector with random values.
-     * @param minX
-     * @param maxX
-     * @param minY
-     * @param maxY
-     */
-    static randomVector(minX: number, maxX: number, minY: number, maxY: number): Vector2D {
-        let x = random(minX, maxX);
-        let y = random(minY, maxY);
-        return new Vector2D(x, y);
-    }
-
-    /**
-     * Returns a new unit vector poiting in the direction of orientation
-     * @param orientation
-     */
-    static getUnitVectorFromOrientation(orientation: number): Vector2D {
-        return new Vector2D(Math.cos(orientation), Math.sin(orientation));
-    }
-
-    /**
-     * Returns the distance if two points.
-     * @param vector1 point 1
-     * @param vector2 point 2
-     */
-    static getDistance(vector1: Vector2D, vector2: Vector2D): number {
-        return vector1.clone().subtr(vector2.clone()).getNorm();
-    }
-
-    // endregion statics
-
-    /**
-     * Translates the point by dx and dy.
-     * @param {number} dx translation of x-coordinate
-     * @param {number} dy translation of y-coordinate
-     */
-    translate(dx, dy): Vector2D {
-        this.x += dx;
-        this.y += dy;
-        return this;
-    }
-
-    /**
-     * Translates this vector by another vector.
-     * @param vector translation vector
-     */
-    translateV(vector: Vector2D): Vector2D {
-        return this.translate(vector.x, vector.y);
-    }
-
-    /**
-     * Rotates the point around a center at (cx, cy) by angle.
-     * @param {number} cx center point x
-     * @param {number} cy center point y
-     * @param {number} angle rotation angle
-     */
-    rotate(cx, cy, angle): Vector2D {
-        this.translate(-cx, -cy);
-        const x = this.x;
-        const y = this.y;
-        this.x = Math.cos(angle) * x - Math.sin(angle) * y;
-        this.y = Math.sin(angle) * x + Math.cos(angle) * y;
-        this.translate(cx, cy);
-        return this;
-    }
-
-    /**
-     * Add a vector to this.
-     * @param vector
-     */
-    add(vector: Vector2D): Vector2D {
-        this.x += vector.x;
-        this.y += vector.y;
-        return this;
-    }
-
-    /**
-     * Subtract a vector to this.
-     * @param vector
-     */
-    subtr(vector: Vector2D): Vector2D {
-        this.x -= vector.x;
-        this.y -= vector.y;
-        return this;
-    }
-
-    /**
-     * Multiplies a factor to this.
-     * @param factor
-     */
-    multiplyFactor(factor: number): Vector2D {
-        this.x *= factor;
-        this.y *= factor;
-        return this;
-    }
-
-    /**
-     * Returns the Euklidean norm of this vector.
-     */
-    getNorm(): number {
-        return Math.sqrt(this.x ** 2 + this.y ** 2);
-    }
-
-    /**
-     * Returns a normalized unit vector copy of this.
-     */
-    getDirection(): Vector2D {
-        let clone = this.clone();
-        if (clone.getNorm() === 0) {
-            return new Vector2D(0, 0);
-        }
-        return clone.multiplyFactor(1 / clone.getNorm());
-    }
-
-    /**
-     * Returns a copy of this.
-     */
-    clone(): Vector2D {
-        return new Vector2D(this.x, this.y);
-    }
-
-    /**
-     * Returns a printable (rounded) string representation of this point object.
-     */
-    toString(): string {
-        return `Vector2D (${this.x.toFixed(3)}, ${this.x.toFixed(3)})`;
-    }
-}
-
-
-
-//////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////
 ///////////////////////    S P A C E   -   O B J E C T S   ///////////////////
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 
 // #region space objects
+
 
 
 /**
@@ -762,7 +543,8 @@ class SpaceObject {
      * @param object
      */
     hitBy(object: SpaceObject): void {
-
+        console.log("hit by");
+        console.log(object);
     }
 
     /**
@@ -777,7 +559,7 @@ class SpaceObject {
      * @param ctx canvas context
      */
     draw(ctx: CanvasRenderingContext2D): void {
-        drawCircle(ctx, this.position, this.size, SpaceObject.strokeStyle, SpaceObject.fillStyle);
+        lib.drawCircle(ctx, this.position, this.size, SpaceObject.strokeStyle, SpaceObject.fillStyle);
     }
 
     /**
@@ -874,19 +656,6 @@ class Spaceship extends SpaceObject {
     }
 
     /**
-     * Shoots a laser.
-     */
-    laser(): void {
-        // TODO: immediate shot in straight line
-        let direction = this.getOrientationVector();
-        let polygon = [
-            this.position,
-            direction.multiplyFactor(2000).add(this.position)
-        ];
-        // drawPolygon(ctx, this.points, this.strokeStyle, this.fillStyle);
-    }
-
-    /**
      * Decrease shield overtime
      */
     decay(): void {
@@ -919,10 +688,10 @@ class Spaceship extends SpaceObject {
     draw(ctx: CanvasRenderingContext2D): void {
         // draw shield
         if (this.shield > 0) {
-            drawCircle(ctx, this.position, this.size + 2, `rgba(0, 255, 255, ${this.shield / 100})`, "rgba(0, 0, 0, 0)");
+            lib.drawCircle(ctx, this.position, this.size + 2, `rgba(0, 255, 255, ${this.shield / 100})`, "rgba(0, 0, 0, 0)");
         }
         // draw ship
-        drawPolygon(ctx, this.points, Spaceship.strokeStyle, Spaceship.fillStyle);
+        lib.drawPolygon(ctx, this.points, Spaceship.strokeStyle, Spaceship.fillStyle);
     }
 }
 
@@ -964,7 +733,7 @@ class Shot extends SpaceObject {
             return;
         }
         let color = `rgba(0, 255, 0, ${this.energy / this.originalEnergy})`;
-        drawCircle(ctx, this.position, this.size, color, color);
+        lib.drawCircle(ctx, this.position, this.size, color, color);
     }
 }
 
@@ -987,17 +756,18 @@ class Asteroid extends SpaceObject {
     ) {
         super(gameSize, position, orientation, velocity, size, energy);
 
+        // create polygon approximating the
         // circle by using random angles and radii
         this.points = [];
-        let number = ~~random(5, 20);
+        let number = ~~lib.random(5, 20);
         let step = 2 * Math.PI / number;
         let angle = 0;
         for (let i = 0; i <= number; i++) {
-            let radius = random(this.size * 0.3, this.size * 1.3);
-            let x = this.position.x + this.size * Math.cos(angle);
-            let y = this.position.y + this.size * Math.sin(angle);
+            let radius = lib.random(this.size * 0.8, this.size * 1.1);
+            let x = this.position.x + radius * Math.cos(angle);
+            let y = this.position.y + radius * Math.sin(angle);
             this.points.push(new Vector2D(x, y));
-            angle += random(step * 0.5, step * 2);
+            angle += lib.random(step * 0.5, step * 2);
             if (angle > 2 * Math.PI) {
                 break;
             }
@@ -1042,13 +812,13 @@ class Asteroid extends SpaceObject {
      */
     split(): Array<Asteroid> {
         // split
-        let numberChildren = ~~random(2, 6);
+        let numberChildren = ~~lib.random(2, 6);
         let children = [];
         for (let i = 0; i < numberChildren; i++) {
             let energy, energyFraction, size;
             if (i !== numberChildren - 1 && this.energy > 50) {
                 // children share energy
-                energyFraction = random(0, 0.5);
+                energyFraction = lib.random(0, 0.5);
                 energy = this.energy * energyFraction;
                 size = this.size * energyFraction;
                 this.energy -= energy;
@@ -1080,7 +850,7 @@ class Asteroid extends SpaceObject {
      */
     createDrops(): Drop {
         // only create drop with some probability
-        if (random(0, 1) < 0.25) {
+        if (lib.random(0, 1) < 0.25) {
             return null;
         }
         return new Drop(
@@ -1103,7 +873,7 @@ class Asteroid extends SpaceObject {
             return;
         }
         // drawCircle(ctx, this.position, this.size, Asteroid.strokeStyle, Asteroid.fillStyle);
-        drawPolygon(ctx, this.points, Asteroid.strokeStyle, Asteroid.fillStyle);
+        lib.drawPolygon(ctx, this.points, Asteroid.strokeStyle, Asteroid.fillStyle);
         ctx.fillStyle = "#fff";
         ctx.fillText((~~this.energy).toString(), this.position.x, this.position.y);
     }
@@ -1130,21 +900,21 @@ class Drop extends SpaceObject {
         super(gameSize, position, orientation, velocity, size, energy);
 
         let effectTypes = ["energy", "power", "shield", "life", "score"];
-        let r = ~~random(0, effectTypes.length);
+        let r = ~~lib.random(0, effectTypes.length);
         this.effectType = effectTypes[r];
         switch (this.effectType) {
             case "energy":
-                this.effect = 10 * ~~random(-6, 11);
+                this.effect = 10 * ~~lib.random(-6, 11);
                 this.color = "0, 0, 255";
                 break;
 
             case "power":
-                this.effect = ~~random(-6, 11);
+                this.effect = ~~lib.random(-6, 11);
                 this.color = "0, 255, 0";
                 break;
 
             case "shield":
-                this.effect = ~~random(500, 1000);
+                this.effect = ~~lib.random(500, 1000);
                 this.color = "255, 255, 0";
                 break;
 
@@ -1154,7 +924,7 @@ class Drop extends SpaceObject {
                 break;
 
             case "score":
-                this.effect = ~~random(-1000, 10000);
+                this.effect = ~~lib.random(-1000, 10000);
                 this.color = "255, 215, 0";
                 break;
 
@@ -1225,3 +995,43 @@ class Drop extends SpaceObject {
 
 
 // #endregion space objects
+
+
+
+// #region main
+
+// global game variable
+var game: Asteroids;
+
+/**
+ * Processes keyboard events.
+ * @param event keyboard event
+ */
+function keyDownAsteroids(event: KeyboardEvent): void {
+    // some keys should be processed by the browser
+    switch (event.key) {
+        case "F5":
+            return;
+        case "F11":
+            return;
+        case "F12":
+            return;
+        default:
+            // pass on to game
+            if (game) {
+                game.keyDown(event);
+            }
+    }
+}
+
+/**
+ * Starts a new game.
+ */
+function initAsteroids(): void {
+    if (game) {
+        game.remove();
+    }
+    game = new Asteroids();
+}
+
+// #endregion main

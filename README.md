@@ -20,3 +20,9 @@ Feel free to download, fork and star this repo.
 
 ## Asteroids
 [dir](./asteroids/)
+
+
+
+## Hangman
+
+Words from [github.com/dwyl/english-words](https://github.com/dwyl/english-words)
