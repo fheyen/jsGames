@@ -1,3 +1,6 @@
+/**
+ * Main class of this game.
+ */
 class Pong {
     useAi: boolean;
     aiLag: number;

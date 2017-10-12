@@ -1,3 +1,6 @@
+/**
+ * Main class of this game.
+ */
 class Asteroids {
     gameSize: Vector2D;
     score: number;
@@ -57,7 +60,7 @@ class Asteroids {
         let position = new Vector2D(this.gameSize.x / 2, this.gameSize.y / 2);
         let orientation = 0;
         let velocity = new Vector2D(0, 0);
-        let power = 10;
+        let power = 20;
         this.ship = new Spaceship(
             this,
             position,
@@ -70,14 +73,32 @@ class Asteroids {
 
         // create asteroids
         this.asteroids = [];
-        let number = 3;
+        let number = 5;
+        let maxTries = 100;
+        let tryNum = 0;
         for (let i = 0; i < number; i++) {
-            let aPos = Vector2D.randomVector(0, this.gameSize.x, 0, this.gameSize.y);
-            let aVelocity = Vector2D.randomVector(-1, 1, -1, 1);
-            let aSize = lib.random(50, 100);
-            let aEnergy = aSize ** 2 / 5;
-            let a = new Asteroid(this, aPos, 0, aVelocity, aSize, aEnergy);
-            this.asteroids.push(a);
+            tryNum = 0;
+            // choose free space
+            while (tryNum++ < maxTries) {
+                let aPos = Vector2D.randomVector(0, this.gameSize.x, 0, this.gameSize.y);
+                let aVelocity = Vector2D.randomVector(-1, 1, -1, 1);
+                let aSize = lib.random(50, 100);
+                let aEnergy = aSize ** 2 / 5;
+                let a = new Asteroid(this, aPos, 0, aVelocity, aSize, aEnergy);
+                let hit = false;
+                for (let j = 0; j < this.asteroids.length; j++) {
+                    if (this.asteroids[j].isHit(a)) {
+                        hit = true;
+                        break;
+                    }
+                }
+                if (!hit) {
+                    this.asteroids.push(a);
+                    break;
+                }
+            }
+
+
         }
 
         // reset drops
@@ -85,14 +106,14 @@ class Asteroids {
 
         // create stars
         this.stars = [];
-        for (let i = 0; i < 500; i++) {
+        for (let i = 0; i < 400; i++) {
             this.stars.push(
                 new Star(
                     this,
                     Vector2D.randomVector(0, this.gameSize.x, 0, this.gameSize.y),
                     0,
                     new Vector2D(0, 0),
-                    lib.random(0.01, 1.5),
+                    lib.random(0.01, 1),
                     0
                 )
             );
@@ -403,6 +424,7 @@ class Asteroids {
      * @param drawShip ship is only drawn if this is not set to false
      */
     updateUI(drawShip: boolean = true): void {
+        this.ctx.clearRect(0, 0, this.gameSize.x, this.gameSize.y);
         // asteroids
         this.asteroids.forEach(o => this.drawObject(o));
         // ship
@@ -691,6 +713,7 @@ class SpaceObject {
  */
 class Spaceship extends SpaceObject {
     shots: Array<Shot>;
+    lastTimeShot: number;
     power: number;
     shield: number;
     lifes: number;
@@ -723,6 +746,8 @@ class Spaceship extends SpaceObject {
             new Vector2D(x - 0.2 * size, y),
             new Vector2D(x - 0.75 * size, y + 0.6 * size),
         ];
+
+        this.lastTimeShot = 0;
     }
 
     /**
@@ -733,20 +758,13 @@ class Spaceship extends SpaceObject {
         if (object instanceof Asteroid) {
             // damage should depend on magnitude of velocity difference
             let magnitude = Vector2D.getDistance(this.velocity, object.velocity);
-            let damage = object.energy * (magnitude / 50);
-            if (this.shield >= damage) {
-                // shield blocks damage
-                this.shield -= damage;
-                damage = 0;
-            } else {
-                // shield blocks some damage
-                damage -= this.shield;
-                this.shield = 0;
-            }
+            let rawDamage = object.energy * (magnitude / 100);
+            // shield blocks damage
+            let damage = rawDamage - this.shield;
+            this.shield = Math.max(0, this.shield - rawDamage);
             this.energy -= damage;
             // give some damage to asteroid too
-            let ownDamage = 0.01 * (this.shield + this.energy / 100) / object.energy;
-            object.energy -= ownDamage;
+            object.energy -= rawDamage / 2;
         }
     }
 
@@ -754,10 +772,15 @@ class Spaceship extends SpaceObject {
      * Shoots a new Shot object.
      */
     shoot(): void {
+        // only allow 10 shots per second
+        if (this.game.timeElapsed - this.lastTimeShot < 100) {
+            return;
+        }
+        this.lastTimeShot = this.game.timeElapsed;
         // shoot from front of ship
         let position = this.position.clone()
             .add(this.getOrientationVector()
-                .multiplyFactor(0.7 * this.size)
+                .multiplyFactor(this.size)
             );
         // velocity mixes ship velocity and ship orientation
         let velocity = this.getOrientationVector()
@@ -861,7 +884,7 @@ class Shot extends SpaceObject {
     }
 
     /**
-     * Decrease energy overtime
+     * Decrease energy overtime.
      */
     decay(): void {
         this.energy -= Shot.decayRate * this.originalEnergy;

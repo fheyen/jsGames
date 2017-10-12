@@ -1,3 +1,6 @@
+/**
+ * Main class of this game.
+ */
 class TicTacToe {
     useAi: boolean;
     state: Array<number>;

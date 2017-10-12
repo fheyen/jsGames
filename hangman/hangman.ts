@@ -1,3 +1,6 @@
+/**
+ * Main class of this game.
+ */
 class Hangman {
     gameSize: Array<number>;
     timeElapsed: number;

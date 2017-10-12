@@ -1,3 +1,6 @@
+/**
+ * Main class of this game.
+ */
 class Copter {
     gameSize: Array<number>;
     player: any;

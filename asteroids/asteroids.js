@@ -36,22 +36,37 @@ var Asteroids = (function () {
         var position = new Vector2D(this.gameSize.x / 2, this.gameSize.y / 2);
         var orientation = 0;
         var velocity = new Vector2D(0, 0);
-        var power = 10;
+        var power = 20;
         this.ship = new Spaceship(this, position, orientation, velocity, size, 100, power);
         this.asteroids = [];
-        var number = 3;
+        var number = 5;
+        var maxTries = 100;
+        var tryNum = 0;
         for (var i = 0; i < number; i++) {
-            var aPos = Vector2D.randomVector(0, this.gameSize.x, 0, this.gameSize.y);
-            var aVelocity = Vector2D.randomVector(-1, 1, -1, 1);
-            var aSize = lib.random(50, 100);
-            var aEnergy = Math.pow(aSize, 2) / 5;
-            var a = new Asteroid(this, aPos, 0, aVelocity, aSize, aEnergy);
-            this.asteroids.push(a);
+            tryNum = 0;
+            while (tryNum++ < maxTries) {
+                var aPos = Vector2D.randomVector(0, this.gameSize.x, 0, this.gameSize.y);
+                var aVelocity = Vector2D.randomVector(-1, 1, -1, 1);
+                var aSize = lib.random(50, 100);
+                var aEnergy = Math.pow(aSize, 2) / 5;
+                var a = new Asteroid(this, aPos, 0, aVelocity, aSize, aEnergy);
+                var hit = false;
+                for (var j = 0; j < this.asteroids.length; j++) {
+                    if (this.asteroids[j].isHit(a)) {
+                        hit = true;
+                        break;
+                    }
+                }
+                if (!hit) {
+                    this.asteroids.push(a);
+                    break;
+                }
+            }
         }
         this.drops = [];
         this.stars = [];
-        for (var i = 0; i < 500; i++) {
-            this.stars.push(new Star(this, Vector2D.randomVector(0, this.gameSize.x, 0, this.gameSize.y), 0, new Vector2D(0, 0), lib.random(0.01, 1.5), 0));
+        for (var i = 0; i < 400; i++) {
+            this.stars.push(new Star(this, Vector2D.randomVector(0, this.gameSize.x, 0, this.gameSize.y), 0, new Vector2D(0, 0), lib.random(0.01, 1), 0));
         }
         var ctx = this.backgroundCanvas.getContext("2d");
         ctx.fillStyle = "#000";
@@ -244,6 +259,7 @@ var Asteroids = (function () {
     Asteroids.prototype.updateUI = function (drawShip) {
         var _this = this;
         if (drawShip === void 0) { drawShip = true; }
+        this.ctx.clearRect(0, 0, this.gameSize.x, this.gameSize.y);
         this.asteroids.forEach(function (o) { return _this.drawObject(o); });
         if (drawShip) {
             this.drawObject(this.ship);
@@ -402,29 +418,27 @@ var Spaceship = (function (_super) {
             new Vector2D(x - 0.2 * size, y),
             new Vector2D(x - 0.75 * size, y + 0.6 * size),
         ];
+        _this.lastTimeShot = 0;
         return _this;
     }
     Spaceship.prototype.hitBy = function (object) {
         if (object instanceof Asteroid) {
             var magnitude = Vector2D.getDistance(this.velocity, object.velocity);
-            var damage = object.energy * (magnitude / 50);
-            if (this.shield >= damage) {
-                this.shield -= damage;
-                damage = 0;
-            }
-            else {
-                damage -= this.shield;
-                this.shield = 0;
-            }
+            var rawDamage = object.energy * (magnitude / 100);
+            var damage = rawDamage - this.shield;
+            this.shield = Math.max(0, this.shield - rawDamage);
             this.energy -= damage;
-            var ownDamage = 0.01 * (this.shield + this.energy / 100) / object.energy;
-            object.energy -= ownDamage;
+            object.energy -= rawDamage / 2;
         }
     };
     Spaceship.prototype.shoot = function () {
+        if (this.game.timeElapsed - this.lastTimeShot < 100) {
+            return;
+        }
+        this.lastTimeShot = this.game.timeElapsed;
         var position = this.position.clone()
             .add(this.getOrientationVector()
-            .multiplyFactor(0.7 * this.size));
+            .multiplyFactor(this.size));
         var velocity = this.getOrientationVector()
             .multiplyFactor(5)
             .add(this.velocity.clone().getDirection())
