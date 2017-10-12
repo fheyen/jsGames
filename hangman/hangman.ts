@@ -222,7 +222,7 @@ class Hangman {
         this.ctx.fillStyle = "#000";
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-        // TODO: word and _ _ _
+        // word and _ _ _
         this.ctx.font = "40px Consolas";
         let len = this.word.length;
         let xOffset = this.gameSize.x / 2 - len * 30;
@@ -241,14 +241,23 @@ class Hangman {
             xOffset += 60;
         }
 
+        // check if player won
         if (!this.gameOver && numberKnown === this.word.length) {
             this.endGame(true);
         }
 
-        // TODO: gallow
-        this.ctx.fillRect(100, 100, 50, 5);
-
-        // TODO: man
+        // TODO: draw gallow and man
+        let rects = [
+            [10, 10, 10, 10],
+            [20, 10, 10, 10],
+            [30, 10, 10, 10],
+            [40, 10, 10, 10],
+            [50, 10, 10, 10]
+        ];
+        for (let i = 0; i <= this.wrongs; i++) {
+            let r = rects[i];
+            this.ctx.fillRect(r[0], r[1], r[2], r[3]);
+        }
 
         // time elapsed and errors
         this.ctx.font = "20px Consolas";

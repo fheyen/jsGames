@@ -136,7 +136,17 @@ var Hangman = (function () {
         if (!this.gameOver && numberKnown === this.word.length) {
             this.endGame(true);
         }
-        this.ctx.fillRect(100, 100, 50, 5);
+        var rects = [
+            [10, 10, 10, 10],
+            [20, 10, 10, 10],
+            [30, 10, 10, 10],
+            [40, 10, 10, 10],
+            [50, 10, 10, 10]
+        ];
+        for (var i = 0; i <= this.wrongs; i++) {
+            var r = rects[i];
+            this.ctx.fillRect(r[0], r[1], r[2], r[3]);
+        }
         this.ctx.font = "20px Consolas";
         this.ctx.fillText("time " + ~~(this.timeElapsed / 1000) + "  ~  errors " + this.wrongs, this.canvas.width / 2, 25);
         this.ctx.restore();
