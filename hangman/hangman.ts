@@ -2,11 +2,15 @@
  * Main class of this game.
  */
 class Hangman {
-    gameSize: Array<number>;
+    gameSize: { x: number, y: number };
     timeElapsed: number;
+    word: string;
     minWordLength: number;
+    characterKnown: any;
+    wrongs: number;
     canvas: HTMLCanvasElement;
     ctx: CanvasRenderingContext2D;
+    gameReady: boolean;
     gameStarted: boolean;
     gameRunning: boolean;
     gameOver: boolean;
@@ -17,10 +21,10 @@ class Hangman {
      * Creates a new Copter object.
      */
     constructor() {
-        this.gameSize = [
-            window.innerWidth,
-            window.innerHeight
-        ];
+        this.gameSize = {
+            x: window.innerWidth,
+            y: window.innerHeight
+        };
         this.minWordLength = 12;
         // inverse framerate
         this.intervalTime = 1000;
@@ -38,27 +42,24 @@ class Hangman {
      */
     reset(): void {
         this.timeElapsed = 0;
+        this.gameReady = false;
         this.gameStarted = false;
         this.gameOver = false;
         this.gameRunning = false;
 
-        // get random english word
-        let article = this.getWord();
-        console.log(article);
+        this.showMessages("loading...");
 
-        // draw UI
-        this.updateUI();
-        this.showMessages(
-            "Hang Man",
-            "~~~ new game ~~~",
-            "",
-            "press any key to start",
-            "press letter keys to play",
-            "press <F5> to reset"
-        );
+        this.characterKnown = new Map();
+        this.wrongs = 0;
+
+        // get random english word
+        this.getWord();
     }
 
-    getWord(): string {
+    /**
+     * Loads a random word from a file.
+     */
+    getWord(): void {
         let xhr = new XMLHttpRequest();
 
         let url = "./words.txt";
@@ -80,10 +81,6 @@ class Hangman {
                     if (w.length < game.minWordLength) {
                         return false;
                     }
-                    return true;
-                });
-
-                wordArray = wordArray.filter(w => {
                     w = w.toLowerCase();
                     // filter words with number, special characters, etc.
                     // only letters are allowed
@@ -93,16 +90,28 @@ class Hangman {
                     return true;
                 });
 
-                return wordArray[~~lib.random(0, wordArray.length - 1)];
+                let index = ~~lib.random(0, wordArray.length - 1);
 
-            } else {
-                console.error(`HTTP status ${this.status}`);
+                game.word = wordArray[index].toLowerCase();
+
+                console.log(game.word);
+
+                // draw UI
+                game.updateUI();
+                game.showMessages(
+                    "Hang Man",
+                    "~~~ new game ~~~",
+                    "",
+                    "press any key to start",
+                    "press letter keys to play",
+                    "press <F5> to reset"
+                );
+
+                game.gameReady = true;
             }
         };
 
         xhr.send();
-
-        return response;
     }
 
     /**
@@ -117,25 +126,31 @@ class Hangman {
         }
         this.gameStarted = true;
         this.gameRunning = true;
+        this.updateUI();
         this.interval = setInterval(this.drawTime, this.intervalTime, this);
     }
 
     /**
      * Ends the game.
      */
-    endGame(): void {
+    endGame(won: boolean): void {
         this.gameOver = true;
         clearInterval(this.interval);
         this.updateUI();
         this.showMessages(
-            "~~~ game over! ~~~",
+            won ? "you won!" : "~~~ game over! ~~~",
             "",
             `total time: ${~~(this.timeElapsed / 1000)}`,
+            `total erros: ${this.wrongs}`,
             "",
             "press <F5> to restart"
         );
     }
 
+    /**
+     * Refreshes the UI to show the current time once a second.
+     * @param _this
+     */
     drawTime(_this: Hangman) {
         _this.timeElapsed += _this.intervalTime;
         _this.updateUI();
@@ -146,8 +161,8 @@ class Hangman {
      */
     createCanvas(): HTMLCanvasElement {
         let canvas = document.createElement("canvas");
-        canvas.width = this.gameSize[0];
-        canvas.height = this.gameSize[1];
+        canvas.width = this.gameSize.x;
+        canvas.height = this.gameSize.y;
         document.getElementsByTagName("body")[0].appendChild(canvas);
         return canvas;
     }
@@ -159,9 +174,23 @@ class Hangman {
     keyDown(event: KeyboardEvent): void {
         event.preventDefault();
         // process keyboard input
+        if (!this.gameReady) {
+            return;
+        }
         if (!this.gameStarted) {
             this.startGame();
+            return;
         }
+
+        // remember character
+        this.characterKnown.set(event.key);
+
+        // increase penalty if word does not contain this character
+        if (this.word.indexOf(event.key) === - 1) {
+            this.wrongs++;
+        }
+
+        this.updateUI();
     }
 
     /**
@@ -188,22 +217,48 @@ class Hangman {
      * Draws the UI.
      */
     updateUI(): void {
+        this.ctx.save();
         // background
         this.ctx.fillStyle = "#000";
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
         // TODO: word and _ _ _
+        this.ctx.font = "40px Consolas";
+        let len = this.word.length;
+        let xOffset = this.gameSize.x / 2 - len * 30;
+        let y = this.gameSize.y * 0.75;
+        this.ctx.fillStyle = "#fff";
+        let numberKnown = 0;
+        for (let i = 0; i < len; i++) {
+            let character = this.word[i];
+            // show underscore
+            this.ctx.fillRect(xOffset, y, 50, 3);
+            // show character of known
+            if (this.characterKnown.has(character)) {
+                this.ctx.fillText(character, xOffset + 25, y - 5);
+                numberKnown++;
+            }
+            xOffset += 60;
+        }
+
+        if (!this.gameOver && numberKnown === this.word.length) {
+            this.endGame(true);
+        }
 
         // TODO: gallow
+        this.ctx.fillRect(100, 100, 50, 5);
 
         // TODO: man
 
-        // time elapsed
+        // time elapsed and errors
+        this.ctx.font = "20px Consolas";
         this.ctx.fillText(
-            `time ${~~(this.timeElapsed / 1000)}`,
+            `time ${~~(this.timeElapsed / 1000)}  ~  errors ${this.wrongs}`,
             this.canvas.width / 2,
             25
         );
+
+        this.ctx.restore();
     }
 
     /**
