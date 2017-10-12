@@ -1,8 +1,7 @@
-import * as lib from "./lib.js";
 /**
  * Vector class for 2D points and vectors.
  */
-export default class Vector2D {
+class Vector2D {
     x: number;
     y: number;
 

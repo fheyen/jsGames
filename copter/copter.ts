@@ -415,7 +415,7 @@ class CopterObstacle {
 }
 
 // global game variable
-var game: Copter;
+var cop: Copter;
 
 /**
  * Processes keyboard events.
@@ -442,8 +442,8 @@ function keyDownCopter(event: KeyboardEvent): void {
  * Starts a new game.
  */
 function initCopter(): void {
-    if (game) {
-        game.remove();
+    if (cop) {
+        cop.remove();
     }
-    game = new Copter();
+    cop = new Copter();
 }

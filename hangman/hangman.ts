@@ -1,5 +1,3 @@
-import * as lib from "../lib/lib.js";
-
 class Hangman {
     gameSize: Array<number>;
     timeElapsed: number;

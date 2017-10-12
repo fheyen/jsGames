@@ -1,15 +1,24 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-var tslib_1 = require("tslib");
-var lib = require("../lib/lib.js");
-var vector2d_js_1 = require("../lib/vector2d.js");
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var Asteroids = (function () {
     function Asteroids() {
-        this.gameSize = new vector2d_js_1.default(window.innerWidth, window.innerHeight);
+        this.DEBUG = false;
+        this.gameSize = new Vector2D(window.innerWidth, window.innerHeight);
         this.intervalTime = 20;
+        this.backgroundCanvas = this.createCanvas();
         this.canvas = this.createCanvas();
         this.ctx = this.canvas.getContext("2d");
-        this.ctx.font = "20px Consolas";
+        this.fontSize = 20;
+        this.ctx.font = this.fontSize + "px Consolas";
         this.ctx.textAlign = "center";
         this.ctx.shadowColor = "#000";
         this.ctx.shadowBlur = 2;
@@ -24,22 +33,30 @@ var Asteroids = (function () {
         this.gameOver = false;
         this.gameRunning = false;
         var size = Math.min(this.gameSize.x, this.gameSize.y) / 20;
-        var position = new vector2d_js_1.default(this.gameSize.x / 2, this.gameSize.y / 2);
+        var position = new Vector2D(this.gameSize.x / 2, this.gameSize.y / 2);
         var orientation = 0;
-        var velocity = new vector2d_js_1.default(0, 0);
+        var velocity = new Vector2D(0, 0);
         var power = 10;
-        this.ship = new Spaceship(this.gameSize, position, orientation, velocity, size, 100, power);
+        this.ship = new Spaceship(this, position, orientation, velocity, size, 100, power);
         this.asteroids = [];
         var number = 3;
         for (var i = 0; i < number; i++) {
-            var aPos = vector2d_js_1.default.randomVector(0, this.gameSize.x, 0, this.gameSize.y);
-            var aVelocity = vector2d_js_1.default.randomVector(-1, 1, -1, 1);
+            var aPos = Vector2D.randomVector(0, this.gameSize.x, 0, this.gameSize.y);
+            var aVelocity = Vector2D.randomVector(-1, 1, -1, 1);
             var aSize = lib.random(50, 100);
             var aEnergy = Math.pow(aSize, 2) / 5;
-            var a = new Asteroid(this.gameSize, aPos, 0, aVelocity, aSize, aEnergy);
+            var a = new Asteroid(this, aPos, 0, aVelocity, aSize, aEnergy);
             this.asteroids.push(a);
         }
         this.drops = [];
+        this.stars = [];
+        for (var i = 0; i < 500; i++) {
+            this.stars.push(new Star(this, Vector2D.randomVector(0, this.gameSize.x, 0, this.gameSize.y), 0, new Vector2D(0, 0), lib.random(0.01, 1.5), 0));
+        }
+        var ctx = this.backgroundCanvas.getContext("2d");
+        ctx.fillStyle = "#000";
+        ctx.fillRect(0, 0, this.gameSize.x, this.gameSize.y);
+        this.stars.forEach(function (o) { return o.draw(ctx); });
         this.updateUI(false);
         this.showMessages("Asteroids", "~~~ new game ~~~", "", "press <space> to start and fire", "press <p> to pause", "press <⯅> or <⯆> to move the ship", "press <⯇> or <⯈> to rotate the ship", "press <F5> to reset");
     };
@@ -137,6 +154,7 @@ var Asteroids = (function () {
         for (var i = 0; i < as.length; i++) {
             if (_this.ship.isHit(as[i])) {
                 crashed = true;
+                as[i].hitBy(_this.ship);
                 _this.ship.hitBy(as[i]);
                 if (_this.ship.isDestroyed()) {
                     _this.ship.lifes--;
@@ -203,6 +221,7 @@ var Asteroids = (function () {
         var canvas = document.createElement("canvas");
         canvas.width = this.gameSize.x;
         canvas.height = this.gameSize.y;
+        canvas.style.position = "fixed";
         document.getElementsByTagName("body")[0].appendChild(canvas);
         return canvas;
     };
@@ -219,17 +238,18 @@ var Asteroids = (function () {
             console.log(m);
         });
     };
+    Asteroids.prototype.drawObject = function (object) {
+        this.DEBUG ? object.drawDebug(this.ctx) : object.draw(this.ctx);
+    };
     Asteroids.prototype.updateUI = function (drawShip) {
         var _this = this;
         if (drawShip === void 0) { drawShip = true; }
-        this.ctx.fillStyle = "#000";
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-        this.asteroids.forEach(function (o) { return o.draw(_this.ctx); });
+        this.asteroids.forEach(function (o) { return _this.drawObject(o); });
         if (drawShip) {
-            this.ship.draw(this.ctx);
+            this.drawObject(this.ship);
         }
-        this.drops.forEach(function (d) { return d.draw(_this.ctx); });
-        this.ship.shots.forEach(function (s) { return s.draw(_this.ctx); });
+        this.drops.forEach(function (o) { return _this.drawObject(o); });
+        this.ship.shots.forEach(function (s) { return _this.drawObject(s); });
         this.ctx.fillStyle = "#fff";
         this.ctx.fillText("lifes: " + "♥".repeat(~~this.ship.lifes) + "  ~  energy: " + ~~this.ship.energy + "  ~  power: " + ~~this.ship.power + "  ~  shield: " + ~~this.ship.shield + "  ~  score: " + ~~this.score + "  ~  time: " + ~~(this.timeElapsed / 1000), this.canvas.width / 2, 25);
     };
@@ -246,8 +266,8 @@ var Asteroids = (function () {
     return Asteroids;
 }());
 var SpaceObject = (function () {
-    function SpaceObject(gameSize, position, orientation, velocity, size, energy) {
-        this.gameSize = gameSize;
+    function SpaceObject(game, position, orientation, velocity, size, energy) {
+        this.game = game;
         this.position = position;
         this.orientation = orientation;
         this.velocity = velocity;
@@ -257,7 +277,7 @@ var SpaceObject = (function () {
         this.points = [];
     }
     SpaceObject.prototype.getOrientationVector = function () {
-        return vector2d_js_1.default.getUnitVectorFromOrientation(this.orientation);
+        return Vector2D.getUnitVectorFromOrientation(this.orientation);
     };
     SpaceObject.prototype.animate = function () {
         this.translate(this.velocity);
@@ -268,30 +288,30 @@ var SpaceObject = (function () {
         this.points.forEach(function (p) { return p.translateV(vector); });
         var margin = this.size;
         if (this.position.x < -margin) {
-            this.position.x += this.gameSize.x + 2 * margin;
+            this.position.x += this.game.gameSize.x + 2 * margin;
             this.points = this.points.map(function (p) {
-                p.x += _this.gameSize.x + 2 * margin;
+                p.x += _this.game.gameSize.x + 2 * margin;
                 return p;
             });
         }
-        else if (this.position.x > this.gameSize.x + margin) {
-            this.position.x -= this.gameSize.x + 2 * margin;
+        else if (this.position.x > this.game.gameSize.x + margin) {
+            this.position.x -= this.game.gameSize.x + 2 * margin;
             this.points = this.points.map(function (p) {
-                p.x -= _this.gameSize.x + 2 * margin;
+                p.x -= _this.game.gameSize.x + 2 * margin;
                 return p;
             });
         }
         if (this.position.y < -margin) {
-            this.position.y += this.gameSize.y + 2 * margin;
+            this.position.y += this.game.gameSize.y + 2 * margin;
             this.points = this.points.map(function (p) {
-                p.y += _this.gameSize.y + 2 * margin;
+                p.y += _this.game.gameSize.y + 2 * margin;
                 return p;
             });
         }
-        else if (this.position.y > this.gameSize.y + margin) {
-            this.position.y -= this.gameSize.y + 2 * margin;
+        else if (this.position.y > this.game.gameSize.y + margin) {
+            this.position.y -= this.game.gameSize.y + 2 * margin;
             this.points = this.points.map(function (p) {
-                p.y -= _this.gameSize.y + 2 * margin;
+                p.y -= _this.game.gameSize.y + 2 * margin;
                 return p;
             });
         }
@@ -302,10 +322,39 @@ var SpaceObject = (function () {
         this.points.forEach(function (p) { return p.rotate(_this.position.x, _this.position.y, angle); });
     };
     SpaceObject.prototype.isHit = function (object) {
-        if (vector2d_js_1.default.getDistance(this.position, object.position) < this.size + object.size) {
-            return true;
+        if (Vector2D.getDistance(this.position, object.position) < this.size + object.size) {
+            if (this.points.length > 2 && object.points.length > 2) {
+                return this.polygonPolygonHit(this.points, object.points);
+            }
+            else if (this.points.length <= 2 && object.points.length > 2) {
+                return this.circlePolygonHit(this.position, this.size, object.points);
+            }
+            else if (this.points.length > 2 && object.points.length <= 2) {
+                return this.circlePolygonHit(object.position, object.size, this.points);
+            }
+            else {
+                return true;
+            }
         }
         return false;
+    };
+    SpaceObject.prototype.circlePolygonHit = function (center, radius, polygon) {
+        var circle = new SAT.Circle(new SAT.Vector(center.x, center.y), radius);
+        var test = SAT.testPolygonCircle(this.createSatPolygon(polygon), circle);
+        return test;
+    };
+    SpaceObject.prototype.polygonPolygonHit = function (polygon1, polygon2) {
+        var test = SAT.testPolygonPolygon(this.createSatPolygon(polygon1), this.createSatPolygon(polygon2));
+        return test;
+    };
+    SpaceObject.prototype.createSatPolygon = function (polygon) {
+        var position = new SAT.Vector(polygon[0].x, polygon[0].y);
+        var polPoints = [];
+        for (var i = 0; i < polygon.length; i++) {
+            polPoints.push(new SAT.Vector(polygon[i].x - polygon[0].x, polygon[i].y - polygon[0].y));
+        }
+        var poly = new SAT.Polygon(position, polPoints);
+        return poly;
     };
     SpaceObject.prototype.hitBy = function (object) {
         console.log("hit by");
@@ -317,6 +366,20 @@ var SpaceObject = (function () {
     SpaceObject.prototype.draw = function (ctx) {
         lib.drawCircle(ctx, this.position, this.size, SpaceObject.strokeStyle, SpaceObject.fillStyle);
     };
+    SpaceObject.prototype.drawDebug = function (ctx) {
+        var point = this.position.clone().add(this.getOrientationVector().multiplyFactor(this.size * 2));
+        ctx.beginPath();
+        ctx.moveTo(this.position.x, this.position.y);
+        ctx.lineTo(point.x, point.y);
+        ctx.closePath();
+        ctx.strokeStyle = "#fff";
+        ctx.stroke();
+        lib.drawCircle(ctx, this.position, this.size, SpaceObject.strokeStyle, SpaceObject.fillStyle);
+        lib.drawPolygon(ctx, this.points, SpaceObject.strokeStyle, SpaceObject.fillStyle);
+        lib.drawCircle(ctx, this.position, this.size, SpaceObject.strokeStyle, SpaceObject.fillStyle);
+        ctx.fillStyle = "#fff";
+        ctx.fillText((~~this.energy).toString(), this.position.x, this.position.y);
+    };
     SpaceObject.prototype.toString = function () {
         return "SpaceObject (\nposition: " + this.position.toString() + ",\nvelocity: " + this.velocity.toString() + ",\norientation: " + this.orientation.toFixed(2) + ",\nenergy: " + this.energy + "\n";
     };
@@ -325,25 +388,25 @@ var SpaceObject = (function () {
     return SpaceObject;
 }());
 var Spaceship = (function (_super) {
-    tslib_1.__extends(Spaceship, _super);
-    function Spaceship(gameSize, position, orientation, velocity, size, energy, power) {
-        var _this = _super.call(this, gameSize, position, orientation, velocity, size, energy) || this;
+    __extends(Spaceship, _super);
+    function Spaceship(game, position, orientation, velocity, size, energy, power) {
+        var _this = _super.call(this, game, position, orientation, velocity, size, energy) || this;
         _this.power = power;
         _this.shots = [];
         _this.lifes = 3;
         _this.shield = 0;
         var _a = _this.position, x = _a.x, y = _a.y;
         _this.points = [
-            new vector2d_js_1.default(x + size, y),
-            new vector2d_js_1.default(x - 0.75 * size, y - 0.6 * size),
-            new vector2d_js_1.default(x - 0.2 * size, y),
-            new vector2d_js_1.default(x - 0.75 * size, y + 0.6 * size),
+            new Vector2D(x + size, y),
+            new Vector2D(x - 0.75 * size, y - 0.6 * size),
+            new Vector2D(x - 0.2 * size, y),
+            new Vector2D(x - 0.75 * size, y + 0.6 * size),
         ];
         return _this;
     }
     Spaceship.prototype.hitBy = function (object) {
         if (object instanceof Asteroid) {
-            var magnitude = vector2d_js_1.default.getDistance(this.velocity, object.velocity);
+            var magnitude = Vector2D.getDistance(this.velocity, object.velocity);
             var damage = object.energy * (magnitude / 50);
             if (this.shield >= damage) {
                 this.shield -= damage;
@@ -359,11 +422,14 @@ var Spaceship = (function (_super) {
         }
     };
     Spaceship.prototype.shoot = function () {
+        var position = this.position.clone()
+            .add(this.getOrientationVector()
+            .multiplyFactor(0.7 * this.size));
         var velocity = this.getOrientationVector()
-            .multiplyFactor(2)
+            .multiplyFactor(5)
             .add(this.velocity.clone().getDirection())
-            .multiplyFactor(5);
-        var shot = new Shot(this.gameSize, this.position.clone(), this.orientation, velocity, 3, this.power);
+            .multiplyFactor(1);
+        var shot = new Shot(this.game, position, this.orientation, velocity, 5, this.power);
         this.shots.push(shot);
     };
     Spaceship.prototype.decay = function () {
@@ -392,10 +458,26 @@ var Spaceship = (function (_super) {
     return Spaceship;
 }(SpaceObject));
 var Shot = (function (_super) {
-    tslib_1.__extends(Shot, _super);
-    function Shot(gameSize, position, orientation, velocity, size, energy) {
-        return _super.call(this, gameSize, position, orientation, velocity, size, energy) || this;
+    __extends(Shot, _super);
+    function Shot(game, position, orientation, velocity, size, energy) {
+        var _this = _super.call(this, game, position, orientation, velocity, size, energy) || this;
+        var p = position;
+        _this.points = [
+            p.clone().add(_this.getOrientationVector()
+                .multiplyFactor(_this.size)),
+            p.clone().add(_this.getOrientationVector()
+                .rotate(0, 0, Math.PI * 0.75)
+                .multiplyFactor(_this.size)),
+            p.clone().add(_this.getOrientationVector()
+                .rotate(0, 0, -Math.PI * 0.75).multiplyFactor(_this.size)),
+        ];
+        return _this;
     }
+    Shot.prototype.isHit = function (object) {
+        console.error("shots cannot be hit");
+        console.log(object);
+        return false;
+    };
     Shot.prototype.decay = function () {
         this.energy -= Shot.decayRate * this.originalEnergy;
     };
@@ -404,27 +486,27 @@ var Shot = (function (_super) {
             return;
         }
         var color = "rgba(0, 255, 0, " + this.energy / this.originalEnergy + ")";
-        lib.drawCircle(ctx, this.position, this.size, color, color);
+        lib.drawPolygon(ctx, this.points, color, color);
     };
-    Shot.decayRate = 0.01;
+    Shot.decayRate = 0.005;
     Shot.strokeStyle = "#0f0";
     Shot.fillStyle = "#0f0";
     return Shot;
 }(SpaceObject));
 var Asteroid = (function (_super) {
-    tslib_1.__extends(Asteroid, _super);
-    function Asteroid(gameSize, position, orientation, velocity, size, energy) {
-        var _this = _super.call(this, gameSize, position, orientation, velocity, size, energy) || this;
+    __extends(Asteroid, _super);
+    function Asteroid(game, position, orientation, velocity, size, energy) {
+        var _this = _super.call(this, game, position, orientation, velocity, size, energy) || this;
         _this.points = [];
-        var number = ~~lib.random(5, 20);
+        var number = ~~lib.random(10, 30);
         var step = 2 * Math.PI / number;
         var angle = 0;
         for (var i = 0; i <= number; i++) {
-            var radius = lib.random(_this.size * 0.8, _this.size * 1.1);
+            var radius = lib.random(_this.size * 0.7, _this.size);
             var x = _this.position.x + radius * Math.cos(angle);
             var y = _this.position.y + radius * Math.sin(angle);
-            _this.points.push(new vector2d_js_1.default(x, y));
-            angle += lib.random(step * 0.5, step * 2);
+            _this.points.push(new Vector2D(x, y));
+            angle += lib.random(step * 0.7, step * 1.5);
             if (angle > 2 * Math.PI) {
                 break;
             }
@@ -445,7 +527,7 @@ var Asteroid = (function (_super) {
                 return [null, null];
             }
         }
-        else if (object instanceof Asteroid) {
+        else if (object instanceof Asteroid || object instanceof Spaceship) {
             var direction = this.position.clone()
                 .subtr(object.position.clone())
                 .getDirection();
@@ -473,7 +555,7 @@ var Asteroid = (function (_super) {
                 this.energy = 0;
                 this.size = 0;
             }
-            var child = new Asteroid(this.gameSize, this.position.clone().add(vector2d_js_1.default.randomVector(-1, 1, -1, 1)), this.orientation, this.velocity.clone().add(vector2d_js_1.default.randomVector(-1, 1, -1, 1)), size, energy);
+            var child = new Asteroid(this.game, this.position.clone().add(Vector2D.randomVector(-1, 1, -1, 1)), this.orientation, this.velocity.clone().add(Vector2D.randomVector(-1, 1, -1, 1)), size, energy);
             children.push(child);
         }
         return children;
@@ -482,24 +564,22 @@ var Asteroid = (function (_super) {
         if (lib.random(0, 1) < 0.25) {
             return null;
         }
-        return new Drop(this.gameSize, this.position.clone().add(vector2d_js_1.default.randomVector(-2, 2, -2, 2)), this.orientation, this.velocity.clone().add(vector2d_js_1.default.randomVector(-2, 2, -2, 2)), 10, 100);
+        return new Drop(this.game, this.position.clone().add(Vector2D.randomVector(-2, 2, -2, 2)), this.orientation, this.velocity.clone().add(Vector2D.randomVector(-2, 2, -2, 2)), 10, 100);
     };
     Asteroid.prototype.draw = function (ctx) {
         if (this.energy < 0) {
             return;
         }
         lib.drawPolygon(ctx, this.points, Asteroid.strokeStyle, Asteroid.fillStyle);
-        ctx.fillStyle = "#fff";
-        ctx.fillText((~~this.energy).toString(), this.position.x, this.position.y);
     };
     Asteroid.strokeStyle = "#fff";
-    Asteroid.fillStyle = "rgba(255, 255, 255, 0.2)";
+    Asteroid.fillStyle = "#333";
     return Asteroid;
 }(SpaceObject));
 var Drop = (function (_super) {
-    tslib_1.__extends(Drop, _super);
-    function Drop(gameSize, position, orientation, velocity, size, energy) {
-        var _this = _super.call(this, gameSize, position, orientation, velocity, size, energy) || this;
+    __extends(Drop, _super);
+    function Drop(game, position, orientation, velocity, size, energy) {
+        var _this = _super.call(this, game, position, orientation, velocity, size, energy) || this;
         var effectTypes = ["energy", "power", "shield", "life", "score"];
         var r = ~~lib.random(0, effectTypes.length);
         _this.effectType = effectTypes[r];
@@ -527,15 +607,22 @@ var Drop = (function (_super) {
             default:
                 break;
         }
-        if (!_this.effectType) {
-            console.log(r);
-        }
+        _this.text = _this.effectType + " " + _this.effect;
+        var textWidth = _this.game.ctx.measureText(_this.text).width;
+        var textHeight = _this.game.fontSize;
+        _this.points = [
+            new Vector2D(_this.position.x - textWidth, _this.position.y - textHeight),
+            new Vector2D(_this.position.x + textWidth, _this.position.y - textHeight),
+            new Vector2D(_this.position.x + textWidth, _this.position.y + textHeight),
+            new Vector2D(_this.position.x - textWidth, _this.position.y + textHeight)
+        ];
         return _this;
     }
     Drop.prototype.decay = function () {
         this.energy -= Drop.decayRate * this.originalEnergy;
     };
     Drop.prototype.collect = function (collector, game) {
+        console.warn("collected drop: " + this.text);
         game.score += 250;
         switch (this.effectType) {
             case "energy":
@@ -563,10 +650,22 @@ var Drop = (function (_super) {
             return;
         }
         ctx.fillStyle = "rgba(" + this.color + ", " + this.energy / this.originalEnergy + ")";
-        ctx.fillText(this.effectType + " " + this.effect, this.position.x, this.position.y + 10);
+        ctx.fillText(this.text, this.position.x, this.position.y + 10);
     };
     Drop.decayRate = 0.001;
     return Drop;
+}(SpaceObject));
+var Star = (function (_super) {
+    __extends(Star, _super);
+    function Star(game, position, orientation, velocity, size, energy) {
+        var _this = _super.call(this, game, position, orientation, velocity, size, energy) || this;
+        _this.color = "#fff";
+        return _this;
+    }
+    Star.prototype.draw = function (ctx) {
+        lib.drawCircle(ctx, this.position, this.size, this.color, this.color);
+    };
+    return Star;
 }(SpaceObject));
 var game;
 function keyDownAsteroids(event) {

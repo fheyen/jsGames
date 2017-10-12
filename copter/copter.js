@@ -225,7 +225,7 @@ var CopterObstacle = (function () {
     };
     return CopterObstacle;
 }());
-var game;
+var cop;
 function keyDownCopter(event) {
     switch (event.key) {
         case "F5":
@@ -241,8 +241,8 @@ function keyDownCopter(event) {
     }
 }
 function initCopter() {
-    if (game) {
-        game.remove();
+    if (cop) {
+        cop.remove();
     }
-    game = new Copter();
+    cop = new Copter();
 }
