@@ -121,7 +121,7 @@ class TicTacToe {
      * @param state
      * @param position
      */
-    private testDecisionSubtree(state: any, player: number, recursionDepth: number): any {
+    private testDecisionSubtree(state: any, player: number, recursionDepth: number): { choice: number, cost: number } {
         let choice;
         let choices;
         // game over? stop recursion

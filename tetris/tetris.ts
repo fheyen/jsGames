@@ -15,7 +15,7 @@ class Tetris {
     private gameRunning: boolean;
     private gameOver: boolean;
     private intervalTime: number;
-    private interval: any;
+    private interval: number;
     private score: number;
 
     /**
@@ -364,7 +364,7 @@ class TetrisBlock {
 
     public game: Tetris;
     public height: number;
-    public boxes: Array<{ x: number, y: number }>
+    public boxes: Array<{ x: number, y: number }>;
     public type: number;
 
     constructor(game: Tetris, type: number) {

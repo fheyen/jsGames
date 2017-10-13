@@ -44,7 +44,7 @@ class Hangman {
             this.startGame();
         }
         // remember character
-        this.characterKnown.set(event.key);
+        this.characterKnown.set(event.key, true);
         // increase penalty if word does not contain this character
         if (this.word.indexOf(event.key) === -1) {
             this.errorsMade++;
@@ -284,4 +284,4 @@ function initHangman() {
     }
     hm = new Hangman();
 }
-// #endregion main 
+// #endregion main

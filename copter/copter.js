@@ -260,7 +260,7 @@ class CopterObstacle {
         this.height = height;
         this.difficulty = difficulty;
         // if first obstacle
-        if (lastObstacle == null) {
+        if (lastObstacle === null) {
             this.xPosition = 0;
             this.holeUpperY = height * 0.2;
             this.holeLowerY = height - this.holeUpperY;

@@ -6,7 +6,7 @@ class Hangman {
     private timeElapsed: number;
     private word: string;
     private minWordLength: number;
-    private characterKnown: any;
+    private characterKnown: Map<string, boolean>;
     private errorsMade: number;
     private maxErrors: number;
     private canvas: HTMLCanvasElement;
@@ -16,7 +16,7 @@ class Hangman {
     private gameRunning: boolean;
     private gameOver: boolean;
     private intervalTime: number;
-    private interval: any;
+    private interval: number;
 
     /**
      * Creates a new Copter object.
@@ -62,7 +62,7 @@ class Hangman {
         }
 
         // remember character
-        this.characterKnown.set(event.key);
+        this.characterKnown.set(event.key, true);
 
         // increase penalty if word does not contain this character
         if (this.word.indexOf(event.key) === - 1) {
@@ -109,7 +109,7 @@ class Hangman {
                     throw new Error("Could not load words!");
                 }
 
-                let wordArray: Array<string> = response.split("\n");
+                let wordArray: string[] = response.split("\n");
 
                 // filter short words
                 wordArray = wordArray.filter(w => w.length >= game.minWordLength);
@@ -206,7 +206,7 @@ class Hangman {
      * Displays a message on the UI.
      * @param message message string list
      */
-    private showMessages(...messages: Array<string>): void {
+    private showMessages(...messages: string[]): void {
         let offsetY = this.canvas.height / 2 - 15 * messages.length;
         this.ctx.save();
         this.ctx.fillStyle = "#fff";

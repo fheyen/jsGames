@@ -4,7 +4,7 @@
 class Asteroids {
     public gameSize: Vector2D;
     public score: number;
-    public ship: any;
+    public ship: Spaceship;
     public asteroids: Array<Asteroid>;
     public drops: Array<Drop>;
     public stars: Array<Star>;
@@ -17,7 +17,7 @@ class Asteroids {
     public gameRunning: boolean;
     public gameOver: boolean;
     public intervalTime: number;
-    public interval: any;
+    public interval: number;
     public DEBUG: boolean;
 
     constructor() {
@@ -668,7 +668,7 @@ class SpaceObject {
      */
     private circlePolygonHit(center: Vector2D, radius: number, polygon: Array<Vector2D>): boolean {
         // use SAT library
-        const circle = new SAT.Circle(new SAT.Vector(center.x, center.y), radius)
+        const circle = new SAT.Circle(new SAT.Vector(center.x, center.y), radius);
         const test = SAT.testPolygonCircle(
             this.createSatPolygon(polygon),
             circle
@@ -952,7 +952,7 @@ class Asteroid extends SpaceObject {
      * @param object
      * @return drops and child asteroids if there are any
      */
-    hitBy(object: SpaceObject): [Drop, Array<Asteroid>] {
+    public hitBy(object: SpaceObject): [Drop, Array<Asteroid>] {
         if (object instanceof Shot) {
             // asteroid was shot
             this.energy -= object.energy;
@@ -983,12 +983,14 @@ class Asteroid extends SpaceObject {
     /**
      * Splits into 2 to 5 smaller asteroids that share the energy.
      */
-    split(): Array<Asteroid> {
+    public split(): Array<Asteroid> {
         // split
-        const numberChildren = Math.floor(lib.random(2, 6);
+        const numberChildren = Math.floor(lib.random(2, 6));
         const children = [];
         for (let i = 0; i < numberChildren; i++) {
-            let energy, energyFraction, size;
+            let energy;
+            let energyFraction;
+            let size;
             if (i !== numberChildren - 1 && this.energy > 50) {
                 // children share energy
                 energyFraction = lib.random(0, 0.5);

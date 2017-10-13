@@ -757,7 +757,9 @@ class Asteroid extends SpaceObject {
         const numberChildren = Math.floor(lib.random(2, 6));
         const children = [];
         for (let i = 0; i < numberChildren; i++) {
-            let energy, energyFraction, size;
+            let energy;
+            let energyFraction;
+            let size;
             if (i !== numberChildren - 1 && this.energy > 50) {
                 // children share energy
                 energyFraction = lib.random(0, 0.5);

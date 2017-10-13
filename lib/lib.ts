@@ -71,4 +71,4 @@ const lib = {
         }
         ctx.restore();
     }
-}
+};

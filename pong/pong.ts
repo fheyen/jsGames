@@ -4,7 +4,7 @@
 class Pong {
     private useAi: boolean;
     private aiLag: number;
-    private gameSize: Array<number>;
+    private gameSize: number[];
     private round: number;
     private ball: any;
     private player1: any;
@@ -13,8 +13,8 @@ class Pong {
     private ctx: CanvasRenderingContext2D;
     private gameRunning: boolean;
     private intervalTime: number;
-    private interval: any;
-    private timeout: any;
+    private interval: number;
+    private timeout: number;
 
     /**
      * Creates a new game object.

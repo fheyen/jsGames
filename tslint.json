@@ -22,7 +22,8 @@
         "space-within-parens": false,
         "triple-equals": true,
         "use-isnan": true,
-        "object-literal-sort-keys": false
+        "object-literal-sort-keys": false,
+        "curly": true
     },
     "rulesDirectory": []
 }
