@@ -2,23 +2,23 @@
  * Main class of this game.
  */
 class Asteroids {
-    gameSize: Vector2D;
-    score: number;
-    ship: any;
-    asteroids: Array<Asteroid>;
-    drops: Array<Drop>;
-    stars: Array<Star>;
-    timeElapsed: number;
-    canvas: HTMLCanvasElement;
-    backgroundCanvas: HTMLCanvasElement;
-    ctx: CanvasRenderingContext2D;
-    fontSize: number;
-    gameStarted: boolean;
-    gameRunning: boolean;
-    gameOver: boolean;
-    intervalTime: number;
-    interval: any;
-    DEBUG: boolean;
+    public gameSize: Vector2D;
+    public score: number;
+    public ship: any;
+    public asteroids: Array<Asteroid>;
+    public drops: Array<Drop>;
+    public stars: Array<Star>;
+    public timeElapsed: number;
+    public canvas: HTMLCanvasElement;
+    public backgroundCanvas: HTMLCanvasElement;
+    public ctx: CanvasRenderingContext2D;
+    public fontSize: number;
+    public gameStarted: boolean;
+    public gameRunning: boolean;
+    public gameOver: boolean;
+    public intervalTime: number;
+    public interval: any;
+    public DEBUG: boolean;
 
     constructor() {
         // set DEBUG flag
@@ -46,170 +46,17 @@ class Asteroids {
     }
 
     /**
-     * Resets the game to the initial conditions.
+     * Removes the canvas from the DOM.
      */
-    reset(): void {
-        this.timeElapsed = 0;
-        this.score = 0;
-        this.gameStarted = false;
-        this.gameOver = false;
-        this.gameRunning = false;
-
-        // create ship
-        let size = Math.min(this.gameSize.x, this.gameSize.y) / 20;
-        let position = new Vector2D(this.gameSize.x / 2, this.gameSize.y / 2);
-        let orientation = 0;
-        let velocity = new Vector2D(0, 0);
-        let power = 20;
-        this.ship = new Spaceship(
-            this,
-            position,
-            orientation,
-            velocity,
-            size,
-            100,
-            power
-        );
-
-        // create asteroids
-        this.asteroids = [];
-        let number = 5;
-        let maxTries = 100;
-        let tryNum = 0;
-        for (let i = 0; i < number; i++) {
-            tryNum = 0;
-            // choose free space
-            while (tryNum++ < maxTries) {
-                let aPos = Vector2D.randomVector(0, this.gameSize.x, 0, this.gameSize.y);
-                let aVelocity = Vector2D.randomVector(-1, 1, -1, 1);
-                let aSize = lib.random(50, 100);
-                let aEnergy = aSize ** 2 / 5;
-                let a = new Asteroid(this, aPos, 0, aVelocity, aSize, aEnergy);
-                let hit = false;
-                for (let j = 0; j < this.asteroids.length; j++) {
-                    if (this.asteroids[j].isHit(a)) {
-                        hit = true;
-                        break;
-                    }
-                }
-                if (!hit) {
-                    this.asteroids.push(a);
-                    break;
-                }
-            }
-
-
-        }
-
-        // reset drops
-        this.drops = [];
-
-        // create stars
-        this.stars = [];
-        for (let i = 0; i < 400; i++) {
-            this.stars.push(
-                new Star(
-                    this,
-                    Vector2D.randomVector(0, this.gameSize.x, 0, this.gameSize.y),
-                    0,
-                    new Vector2D(0, 0),
-                    lib.random(0.01, 1),
-                    0
-                )
-            );
-        }
-        // draw stars
-        let ctx = this.backgroundCanvas.getContext("2d");
-        ctx.fillStyle = "#000";
-        ctx.fillRect(0, 0, this.gameSize.x, this.gameSize.y);
-        this.stars.forEach(o => o.draw(ctx));
-
-        // draw UI
-        this.updateUI(false);
-        this.showMessages(
-            "Asteroids",
-            "~~~ new game ~~~",
-            "",
-            "press <space> to start and fire",
-            "press <p> to pause",
-            "press <⯅> or <⯆> to move the ship",
-            "press <⯇> or <⯈> to rotate the ship",
-            "press <F5> to reset"
-        );
+    public remove(): void {
+        this.canvas.remove();
     }
-
-    // #region game events
-
-    /**
-     * Starts the game.
-     */
-    startGame(): void {
-        if (this.gameStarted) {
-            return;
-        }
-        if (this.gameOver) {
-            this.reset();
-        }
-        this.gameStarted = true;
-        this.gameRunning = true;
-        this.interval = setInterval(this.animate, this.intervalTime, this);
-    }
-
-    /**
-     * Pauses the game.
-     */
-    pauseGame(): void {
-        if (this.gameOver || !this.gameRunning) {
-            return;
-        }
-        this.gameRunning = false;
-        clearInterval(this.interval);
-        this.fadeUI();
-        // show pause message
-        this.showMessages(
-            "Asteroids",
-            "~~~ paused ~~~",
-            "",
-            "press <space> continue",
-            "press <F5> to reset"
-        );
-    }
-
-    /**
-     * Resumes the paused game.
-     */
-    resumeGame(): void {
-        if (this.gameOver || this.gameRunning) {
-            return;
-        }
-        this.gameRunning = true;
-        this.interval = setInterval(this.animate, this.intervalTime, this);
-    }
-
-    /**
-     * Ends the game.
-     */
-    endGame(won: boolean): void {
-        this.gameOver = true;
-        clearInterval(this.interval);
-        this.fadeUI();
-        this.showMessages(
-            won ? "~~~ you won! ~~~" : "~~~ game over! ~~~",
-            "",
-            `total time survived: ${~~(this.timeElapsed / 1000)} seconds`,
-            `total score: ${~~(this.score)}`,
-            "",
-            "press <F5> to restart"
-        );
-    }
-
-    // #endregion game events
 
     /**
      * Called if a ship has clicked on a button.
      * @param event keydown event
      */
-    keyDown(event: KeyboardEvent): void {
+    public keyDown(event: KeyboardEvent): void {
         event.preventDefault();
         // process keyboard input
         switch (event.key) {
@@ -229,7 +76,7 @@ class Asteroids {
                     return;
                 } else {
                     // change ship orientation
-                    let angle = 10 * Math.PI / 180;
+                    const angle = 10 * Math.PI / 180;
                     event.key === "ArrowLeft" ? this.ship.rotate(-angle) : this.ship.rotate(angle);
                 }
                 break;
@@ -260,49 +107,207 @@ class Asteroids {
     }
 
     /**
-     * @param _this this object
+     * Resets the game to the initial conditions.
      */
-    animate(_this: Asteroids): void {
+    private reset(): void {
+        this.timeElapsed = 0;
+        this.score = 0;
+        this.gameStarted = false;
+        this.gameOver = false;
+        this.gameRunning = false;
+
+        // create ship
+        const size = Math.min(this.gameSize.x, this.gameSize.y) / 20;
+        const position = new Vector2D(this.gameSize.x / 2, this.gameSize.y / 2);
+        const orientation = 0;
+        const velocity = new Vector2D(0, 0);
+        const power = 20;
+        this.ship = new Spaceship(
+            this,
+            position,
+            orientation,
+            velocity,
+            size,
+            100,
+            power
+        );
+
+        // create asteroids
+        this.asteroids = [];
+        const num = 5;
+        const maxTries = 100;
+        let tryNum = 0;
+        for (let i = 0; i < num; i++) {
+            tryNum = 0;
+            // choose free space
+            while (tryNum++ < maxTries) {
+                const aPos = Vector2D.randomVector(0, this.gameSize.x, 0, this.gameSize.y);
+                const aVelocity = Vector2D.randomVector(-1, 1, -1, 1);
+                const aSize = lib.random(50, 100);
+                const aEnergy = aSize ** 2 / 5;
+                const a = new Asteroid(this, aPos, 0, aVelocity, aSize, aEnergy);
+                let hit = false;
+                for (let j = 0; j < this.asteroids.length; j++) {
+                    if (this.asteroids[j].isHit(a)) {
+                        hit = true;
+                        break;
+                    }
+                }
+                if (!hit) {
+                    this.asteroids.push(a);
+                    break;
+                }
+            }
+        }
+
+        // reset drops
+        this.drops = [];
+
+        // create stars
+        this.stars = [];
+        for (let i = 0; i < 400; i++) {
+            this.stars.push(
+                new Star(
+                    this,
+                    Vector2D.randomVector(0, this.gameSize.x, 0, this.gameSize.y),
+                    0,
+                    new Vector2D(0, 0),
+                    lib.random(0.01, 1),
+                    0
+                )
+            );
+        }
+        // draw stars
+        const ctx = this.backgroundCanvas.getContext("2d");
+        ctx.fillStyle = "#000";
+        ctx.fillRect(0, 0, this.gameSize.x, this.gameSize.y);
+        this.stars.forEach(o => o.draw(ctx));
+
+        // draw UI
+        this.updateUI(false);
+        this.showMessages(
+            "Asteroids",
+            "~~~ new game ~~~",
+            "",
+            "press <space> to start and fire",
+            "press <p> to pause",
+            "press <⯅> or <⯆> to move the ship",
+            "press <⯇> or <⯈> to rotate the ship",
+            "press <F5> to reset"
+        );
+    }
+
+    // #region game events
+
+    /**
+     * Starts the game.
+     */
+    private startGame(): void {
+        if (this.gameStarted) {
+            return;
+        }
+        if (this.gameOver) {
+            this.reset();
+        }
+        this.gameStarted = true;
+        this.gameRunning = true;
+        this.interval = setInterval(this.animate, this.intervalTime, this);
+    }
+
+    /**
+     * Pauses the game.
+     */
+    private pauseGame(): void {
+        if (this.gameOver || !this.gameRunning) {
+            return;
+        }
+        this.gameRunning = false;
+        clearInterval(this.interval);
+        this.fadeUI();
+        // show pause message
+        this.showMessages(
+            "Asteroids",
+            "~~~ paused ~~~",
+            "",
+            "press <space> continue",
+            "press <F5> to reset"
+        );
+    }
+
+    /**
+     * Resumes the paused game.
+     */
+    private resumeGame(): void {
+        if (this.gameOver || this.gameRunning) {
+            return;
+        }
+        this.gameRunning = true;
+        this.interval = setInterval(this.animate, this.intervalTime, this);
+    }
+
+    /**
+     * Ends the game.
+     */
+    private endGame(won: boolean): void {
+        this.gameOver = true;
+        clearInterval(this.interval);
+        this.fadeUI();
+        this.showMessages(
+            won ? "~~~ you won! ~~~" : "~~~ game over! ~~~",
+            "",
+            `total time survived: ${Math.floor((this.timeElapsed / 1000))} seconds`,
+            `total score: ${Math.floor((this.score))}`,
+            "",
+            "press <F5> to restart"
+        );
+    }
+
+    // #endregion game events
+
+    /**
+     * @param a this object
+     */
+    private animate(a: Asteroids): void {
         // abbreviations
-        let as = _this.asteroids;
+        const as = a.asteroids;
 
         // check if player has won
         if (as.length === 0) {
-            _this.endGame(true);
+            a.endGame(true);
             return;
         }
 
         // update elapsed time
-        _this.timeElapsed += _this.intervalTime;
-        _this.score += _this.intervalTime / 3000;
+        a.timeElapsed += a.intervalTime;
+        a.score += a.intervalTime / 3000;
 
         // update object positions
         as.forEach(o => o.animate());
-        _this.ship.animate();
-        _this.ship.shots.forEach((s: Shot) => s.animate());
-        _this.drops.forEach((d: Drop) => d.animate());
+        a.ship.animate();
+        a.ship.shots.forEach((s: Shot) => s.animate());
+        a.drops.forEach((d: Drop) => d.animate());
 
         // test for crash
         let crashed = false;
         for (let i = 0; i < as.length; i++) {
-            if (_this.ship.isHit(as[i])) {
+            if (a.ship.isHit(as[i])) {
                 crashed = true;
 
                 // push asteroid away
-                as[i].hitBy(_this.ship);
+                as[i].hitBy(a.ship);
 
                 // reduce energy of ship
-                _this.ship.hitBy(as[i]);
+                a.ship.hitBy(as[i]);
 
                 // game over?
-                if (_this.ship.isDestroyed()) {
-                    _this.ship.lifes--;
-                    if (_this.ship.lifes <= 0) {
-                        _this.endGame(false);
+                if (a.ship.isDestroyed()) {
+                    a.ship.lifes--;
+                    if (a.ship.lifes <= 0) {
+                        a.endGame(false);
                         return;
                     } else {
                         // revive
-                        _this.ship.energy = 1000;
+                        a.ship.energy = 100;
                     }
                 }
             }
@@ -311,19 +316,19 @@ class Asteroids {
         // test shots and asteroids for collisions
         let deltaScore = 0;
         for (let i = 0; i < as.length; i++) {
-            let asteroid = as[i];
-            for (let j = 0; j < _this.ship.shots.length; j++) {
-                let shot = _this.ship.shots[j];
+            const asteroid = as[i];
+            for (let j = 0; j < a.ship.shots.length; j++) {
+                const shot = a.ship.shots[j];
 
                 if (asteroid.isHit(shot)) {
                     // reduce energy of asteroid
-                    let [drop, children] = asteroid.hitBy(shot);
+                    const [drop, children] = asteroid.hitBy(shot);
 
                     if (drop !== null) {
-                        _this.drops.push(drop);
+                        a.drops.push(drop);
                     }
                     if (children !== null) {
-                        _this.asteroids = _this.asteroids.concat(children);
+                        a.asteroids = a.asteroids.concat(children);
                     }
 
                     // destroyed?
@@ -335,19 +340,17 @@ class Asteroids {
                 }
             }
         }
-        _this.score += deltaScore;
+        a.score += deltaScore;
 
         // test asteroids for collision with each other
         for (let i = 0; i < as.length; i++) {
-            let asteroid1 = as[i];
-            for (var j = 0; j < as.length; j++) {
+            const asteroid1 = as[i];
+            for (let j = 0; j < as.length; j++) {
                 // only do each pair once and do not collide an asteroid with itself
                 if (i <= j) {
                     continue;
                 }
-
-                let asteroid2 = as[j];
-
+                const asteroid2 = as[j];
                 if (asteroid1.isHit(asteroid2)) {
                     asteroid1.hitBy(asteroid2);
                     asteroid2.hitBy(asteroid1);
@@ -356,27 +359,27 @@ class Asteroids {
         }
 
         // test ship and drops for collisions
-        for (let i = 0; i < _this.drops.length; i++) {
-            if (_this.ship.isHit(_this.drops[i])) {
-                _this.drops[i].collect(_this.ship, _this);
+        for (let i = 0; i < a.drops.length; i++) {
+            if (a.ship.isHit(a.drops[i])) {
+                a.drops[i].collect(a.ship, a);
             }
         }
 
         // decay objects
-        _this.ship.decay();
-        _this.ship.shots.forEach((s: Shot) => s.decay());
-        _this.drops.forEach(d => d.decay());
+        a.ship.decay();
+        a.ship.shots.forEach((s: Shot) => s.decay());
+        a.drops.forEach(d => d.decay());
 
         // remove destroyed objects
-        _this.asteroids = _this.asteroids.filter(a => !a.isDestroyed());
-        _this.ship.shots = _this.ship.shots.filter((s: Shot) => !s.isDestroyed());
-        _this.drops = _this.drops.filter(d => !d.isDestroyed());
+        a.asteroids = a.asteroids.filter(ast => !ast.isDestroyed());
+        a.ship.shots = a.ship.shots.filter((s: Shot) => !s.isDestroyed());
+        a.drops = a.drops.filter(d => !d.isDestroyed());
 
         // draw game
-        _this.updateUI();
+        a.updateUI();
         if (crashed) {
             // taint screen red
-            _this.fadeUI("rgba(255, 0, 0, 0.2)");
+            a.fadeUI("rgba(255, 0, 0, 0.2)");
         }
     }
 
@@ -385,8 +388,8 @@ class Asteroids {
     /**
      * Creates and returns a canvas object.
      */
-    createCanvas(): HTMLCanvasElement {
-        let canvas = document.createElement("canvas");
+    private createCanvas(): HTMLCanvasElement {
+        const canvas = document.createElement("canvas");
         canvas.width = this.gameSize.x;
         canvas.height = this.gameSize.y;
         canvas.style.position = "fixed";
@@ -398,7 +401,7 @@ class Asteroids {
      * Displays a message on the UI.
      * @param message message string list
      */
-    showMessages(...messages: Array<string>): void {
+    private showMessages(...messages: Array<string>): void {
         let offsetY = this.canvas.height / 2 - 15 * messages.length;
         messages.forEach(m => {
             this.ctx.fillText(
@@ -415,7 +418,7 @@ class Asteroids {
      * Draws a space object on the canvas.
      * If this.DEBUG is set to true, the drawDebug function will be used.
      */
-    drawObject(object: SpaceObject): void {
+    private drawObject(object: SpaceObject): void {
         this.DEBUG ? object.drawDebug(this.ctx) : object.draw(this.ctx);
     }
 
@@ -423,7 +426,7 @@ class Asteroids {
      * Draws the UI.
      * @param drawShip ship is only drawn if this is not set to false
      */
-    updateUI(drawShip: boolean = true): void {
+    private updateUI(drawShip: boolean = true): void {
         this.ctx.clearRect(0, 0, this.gameSize.x, this.gameSize.y);
         // asteroids
         this.asteroids.forEach(o => this.drawObject(o));
@@ -439,17 +442,17 @@ class Asteroids {
         this.ctx.fillStyle = "#fff";
         this.ctx.fillText(
             `lifes: ${
-            "♥".repeat(~~this.ship.lifes)
+            "♥".repeat(Math.floor(this.ship.lifes))
             }  ~  energy: ${
-            ~~this.ship.energy
+            Math.floor(this.ship.energy)
             }  ~  power: ${
-            ~~this.ship.power
+            Math.floor(this.ship.power)
             }  ~  shield: ${
-            ~~this.ship.shield
+            Math.floor(this.ship.shield)
             }  ~  score: ${
-            ~~this.score
+            Math.floor(this.score)
             }  ~  time: ${
-            ~~(this.timeElapsed / 1000)}`,
+            Math.floor(this.timeElapsed / 1000)}`,
             this.canvas.width / 2,
             25
         );
@@ -458,24 +461,15 @@ class Asteroids {
     /**
      * Fades UI to a darker shade or specified color.
      */
-    fadeUI(color: string = "rgba(0, 0, 0, 0.5)"): void {
+    private fadeUI(color: string = "rgba(0, 0, 0, 0.5)"): void {
         this.ctx.save();
         this.ctx.fillStyle = color;
         this.ctx.fillRect(0, 0, this.gameSize.x, this.gameSize.y);
         this.ctx.restore();
     }
 
-    /**
-     * Removes the canvas from the DOM.
-     */
-    remove(): void {
-        this.canvas.remove();
-    }
-
     // #endregion UI
 }
-
-
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
@@ -489,16 +483,16 @@ class Asteroids {
  * General space object class from which all game objects in this game are derived
  */
 class SpaceObject {
-    position: Vector2D;
-    orientation: number;
-    velocity: Vector2D;
-    energy: number;
-    originalEnergy: number;
-    size: number;
-    static strokeStyle: string = "#fff";
-    static fillStyle: string = "rgba(255, 255, 255, 0.2)";
-    game: Asteroids;
-    points: Array<Vector2D>;
+    public static strokeStyle: string = "#fff";
+    public static fillStyle: string = "rgba(255, 255, 255, 0.2)";
+    public position: Vector2D;
+    public orientation: number;
+    public velocity: Vector2D;
+    public energy: number;
+    public originalEnergy: number;
+    public size: number;
+    public game: Asteroids;
+    public points: Array<Vector2D>;
 
     constructor(
         game: Asteroids,
@@ -522,14 +516,14 @@ class SpaceObject {
     /**
      * Returns a unit vector poiting in the direction of this.orientation
      */
-    getOrientationVector(): Vector2D {
+    public getOrientationVector(): Vector2D {
         return Vector2D.getUnitVectorFromOrientation(this.orientation);
     }
 
     /**
      * Moves this object by its velocity.
      */
-    animate(): void {
+    public animate(): void {
         this.translate(this.velocity);
     }
 
@@ -537,12 +531,12 @@ class SpaceObject {
      * Tranlates this object by a vector, keeping it inside the universe.
      * @param vector translation vector
      */
-    translate(vector: Vector2D): void {
+    public translate(vector: Vector2D): void {
         this.position.translateV(vector);
         this.points.forEach(p => p.translateV(vector));
 
         // objects should reenter on the opposite site if disappearing
-        let margin = this.size;
+        const margin = this.size;
         if (this.position.x < -margin) {
             this.position.x += this.game.gameSize.x + 2 * margin;
             this.points = this.points.map(p => {
@@ -575,7 +569,7 @@ class SpaceObject {
      * Rotates this object by an angle.
      * @param angle rotation angle
      */
-    rotate(angle: number): void {
+    public rotate(angle: number): void {
         this.orientation += angle;
         this.points.forEach(p => p.rotate(this.position.x, this.position.y, angle));
     }
@@ -584,7 +578,7 @@ class SpaceObject {
      * Hit test with this and another object.
      * @param object
      */
-    isHit(object: SpaceObject): boolean {
+    public isHit(object: SpaceObject): boolean {
         // simple test with postion and size
         if (Vector2D.getDistance(this.position, object.position) < this.size + object.size) {
             // exact hit test for polygons
@@ -605,58 +599,10 @@ class SpaceObject {
     }
 
     /**
-     * Hit test with a circle and a polygon.
-     * @param center circle center
-     * @param radius circle radius
-     * @param point point
-     */
-    circlePolygonHit(center: Vector2D, radius: number, polygon: Array<Vector2D>): boolean {
-        // use SAT library
-        let circle = new SAT.Circle(new SAT.Vector(center.x, center.y), radius)
-        let test = SAT.testPolygonCircle(
-            this.createSatPolygon(polygon),
-            circle
-        );
-        return test;
-    }
-
-    /**
-     * Hit test for two polygons.
-     * @param polygon1
-     * @param polygon2
-     */
-    polygonPolygonHit(polygon1: Array<Vector2D>, polygon2: Array<Vector2D>, ): boolean {
-        // use SAT library
-        let test = SAT.testPolygonPolygon(
-            this.createSatPolygon(polygon1),
-            this.createSatPolygon(polygon2)
-        );
-        return test;
-    }
-
-    /**
-     * Convert Array<Vector2D> to SAT.Polygon
-     */
-    createSatPolygon(polygon: Array<Vector2D>): Array<SAT.Polygon> {
-        let position = new SAT.Vector(polygon[0].x, polygon[0].y);
-        let polPoints = [];
-        for (let i = 0; i < polygon.length; i++) {
-            polPoints.push(
-                new SAT.Vector(polygon[i].x - polygon[0].x, polygon[i].y - polygon[0].y)
-            );
-        }
-        let poly = new SAT.Polygon(
-            position,
-            polPoints
-        );
-        return poly;
-    }
-
-    /**
      * React to a hit by another object.
      * @param object
      */
-    hitBy(object: SpaceObject): void {
+    public hitBy(object: SpaceObject): void {
         console.log("hit by");
         console.log(object);
     }
@@ -664,7 +610,7 @@ class SpaceObject {
     /**
      * Returns true if energy is lower than 0.
      */
-    isDestroyed(): boolean {
+    public isDestroyed(): boolean {
         return this.energy <= 1;
     }
 
@@ -672,7 +618,7 @@ class SpaceObject {
      * Draws this object onto ctx.
      * @param ctx canvas context
      */
-    draw(ctx: CanvasRenderingContext2D): void {
+    public draw(ctx: CanvasRenderingContext2D): void {
         lib.drawCircle(ctx, this.position, this.size, SpaceObject.strokeStyle, SpaceObject.fillStyle);
     }
 
@@ -680,9 +626,9 @@ class SpaceObject {
      * Draws this object onto ctx.
      * @param ctx canvas context
      */
-    drawDebug(ctx: CanvasRenderingContext2D): void {
+    public drawDebug(ctx: CanvasRenderingContext2D): void {
         // draw orientation
-        let point = this.position.clone().add(this.getOrientationVector().multiplyFactor(this.size * 2));
+        const point = this.position.clone().add(this.getOrientationVector().multiplyFactor(this.size * 2));
         ctx.beginPath();
         ctx.moveTo(this.position.x, this.position.y);
         ctx.lineTo(point.x, point.y);
@@ -697,14 +643,69 @@ class SpaceObject {
         lib.drawCircle(ctx, this.position, this.size, SpaceObject.strokeStyle, SpaceObject.fillStyle);
         // draw energy
         ctx.fillStyle = "#fff";
-        ctx.fillText((~~this.energy).toString(), this.position.x, this.position.y);
+        ctx.fillText((Math.floor(this.energy)).toString(), this.position.x, this.position.y);
     }
 
     /**
      * Returns a string representation of this object.
      */
-    toString(): string {
-        return `SpaceObject (\nposition: ${this.position.toString()},\nvelocity: ${this.velocity.toString()},\norientation: ${this.orientation.toFixed(2)},\nenergy: ${this.energy}\n`;
+    public toString(): string {
+        return `SpaceObject (\nposition: ${
+            this.position.toString()
+            },\nvelocity: ${
+            this.velocity.toString()
+            },\norientation: ${
+            this.orientation.toFixed(2)
+            },\nenergy: ${
+            this.energy}\n`;
+    }
+
+    /**
+     * Hit test with a circle and a polygon.
+     * @param center circle center
+     * @param radius circle radius
+     * @param point point
+     */
+    private circlePolygonHit(center: Vector2D, radius: number, polygon: Array<Vector2D>): boolean {
+        // use SAT library
+        const circle = new SAT.Circle(new SAT.Vector(center.x, center.y), radius)
+        const test = SAT.testPolygonCircle(
+            this.createSatPolygon(polygon),
+            circle
+        );
+        return test;
+    }
+
+    /**
+     * Hit test for two polygons.
+     * @param polygon1
+     * @param polygon2
+     */
+    private polygonPolygonHit(polygon1: Array<Vector2D>, polygon2: Array<Vector2D>, ): boolean {
+        // use SAT library
+        const test = SAT.testPolygonPolygon(
+            this.createSatPolygon(polygon1),
+            this.createSatPolygon(polygon2)
+        );
+        return test;
+    }
+
+    /**
+     * Convert Array<Vector2D> to SAT.Polygon
+     */
+    private createSatPolygon(polygon: Array<Vector2D>): Array<SAT.Polygon> {
+        const position = new SAT.Vector(polygon[0].x, polygon[0].y);
+        const polPoints = [];
+        for (let i = 0; i < polygon.length; i++) {
+            polPoints.push(
+                new SAT.Vector(polygon[i].x - polygon[0].x, polygon[i].y - polygon[0].y)
+            );
+        }
+        const poly = new SAT.Polygon(
+            position,
+            polPoints
+        );
+        return poly;
     }
 }
 
@@ -712,15 +713,15 @@ class SpaceObject {
  * Space ship class
  */
 class Spaceship extends SpaceObject {
-    shots: Array<Shot>;
-    lastTimeShot: number;
-    power: number;
-    shield: number;
-    lifes: number;
-    static decayRate: number = 0.1; // shield decay rate
-    static acceleration: number = 1;
-    static strokeStyle: string = "#0ff";
-    static fillStyle: string = "#0ff";
+    public static decayRate: number = 0.1; // shield decay rate
+    public static acceleration: number = 1;
+    public static strokeStyle: string = "#0ff";
+    public static fillStyle: string = "#0ff";
+    public shots: Array<Shot>;
+    public lastTimeShot: number;
+    public power: number;
+    public shield: number;
+    public lifes: number;
 
     constructor(
         game: Asteroids,
@@ -739,7 +740,7 @@ class Spaceship extends SpaceObject {
         this.shield = 0;
 
         // create shape
-        let { x, y } = this.position;
+        const { x, y } = this.position;
         this.points = [
             new Vector2D(x + size, y),
             new Vector2D(x - 0.75 * size, y - 0.6 * size),
@@ -754,13 +755,13 @@ class Spaceship extends SpaceObject {
      * React to a hit by another object.
      * @param object
      */
-    hitBy(object: SpaceObject): void {
+    public hitBy(object: SpaceObject): void {
         if (object instanceof Asteroid) {
             // damage should depend on magnitude of velocity difference
-            let magnitude = Vector2D.getDistance(this.velocity, object.velocity);
-            let rawDamage = object.energy * (magnitude / 100);
+            const magnitude = Vector2D.getDistance(this.velocity, object.velocity);
+            const rawDamage = object.energy * (magnitude / 100);
             // shield blocks damage
-            let damage = rawDamage - this.shield;
+            const damage = rawDamage - this.shield;
             this.shield = Math.max(0, this.shield - rawDamage);
             this.energy -= damage;
             // give some damage to asteroid too
@@ -771,23 +772,23 @@ class Spaceship extends SpaceObject {
     /**
      * Shoots a new Shot object.
      */
-    shoot(): void {
+    public shoot(): void {
         // only allow 10 shots per second
         if (this.game.timeElapsed - this.lastTimeShot < 100) {
             return;
         }
         this.lastTimeShot = this.game.timeElapsed;
         // shoot from front of ship
-        let position = this.position.clone()
+        const position = this.position.clone()
             .add(this.getOrientationVector()
                 .multiplyFactor(this.size)
             );
         // velocity mixes ship velocity and ship orientation
-        let velocity = this.getOrientationVector()
+        const velocity = this.getOrientationVector()
             .multiplyFactor(5)
             .add(this.velocity.clone().getDirection())
             .multiplyFactor(1);
-        let shot = new Shot(
+        const shot = new Shot(
             this.game,
             position,
             this.orientation,
@@ -800,25 +801,25 @@ class Spaceship extends SpaceObject {
     /**
      * Decrease shield overtime
      */
-    decay(): void {
+    public decay(): void {
         this.shield = Math.max(0, this.shield - Spaceship.decayRate);
     }
 
     /**
      * Accelerates the ship forward.
      */
-    increaseVelocity(): void {
-        let direction = this.getOrientationVector();
-        let delta = direction.multiplyFactor(Spaceship.acceleration);
+    public increaseVelocity(): void {
+        const direction = this.getOrientationVector();
+        const delta = direction.multiplyFactor(Spaceship.acceleration);
         this.velocity.add(delta);
     }
 
     /**
      * Accelerates the ship backward.
      */
-    decreaseVelocity(): void {
-        let direction = this.getOrientationVector();
-        let delta = direction.multiplyFactor(-Spaceship.acceleration);
+    public decreaseVelocity(): void {
+        const direction = this.getOrientationVector();
+        const delta = direction.multiplyFactor(-Spaceship.acceleration);
         this.velocity.add(delta);
     }
 
@@ -827,10 +828,16 @@ class Spaceship extends SpaceObject {
      * Draws this object onto ctx.
      * @param ctx canvas context
      */
-    draw(ctx: CanvasRenderingContext2D): void {
+    public draw(ctx: CanvasRenderingContext2D): void {
         // draw shield
         if (this.shield > 0) {
-            lib.drawCircle(ctx, this.position, this.size + 2, `rgba(0, 255, 255, ${this.shield / 100})`, "rgba(0, 0, 0, 0)");
+            lib.drawCircle(
+                ctx,
+                this.position,
+                this.size + 2,
+                `rgba(0, 255, 255, ${this.shield / 100})`,
+                "rgba(0, 0, 0, 0)"
+            );
         }
         // draw ship
         lib.drawPolygon(ctx, this.points, Spaceship.strokeStyle, Spaceship.fillStyle);
@@ -841,9 +848,9 @@ class Spaceship extends SpaceObject {
  * Shot class.
  */
 class Shot extends SpaceObject {
-    static decayRate: number = 0.005;
-    static strokeStyle: string = "#0f0";
-    static fillStyle: string = "#0f0";
+    public static decayRate: number = 0.005;
+    public static strokeStyle: string = "#0f0";
+    public static fillStyle: string = "#0f0";
 
     constructor(
         game: Asteroids,
@@ -855,7 +862,7 @@ class Shot extends SpaceObject {
     ) {
         super(game, position, orientation, velocity, size, energy);
 
-        let p = position;
+        const p = position;
         this.points = [
             p.clone().add(
                 this.getOrientationVector()
@@ -877,7 +884,7 @@ class Shot extends SpaceObject {
      * Disable hit detection for shots.
      * @param object
      */
-    isHit(object: SpaceObject): boolean {
+    public isHit(object: SpaceObject): boolean {
         console.error("shots cannot be hit");
         console.log(object);
         return false;
@@ -886,7 +893,7 @@ class Shot extends SpaceObject {
     /**
      * Decrease energy overtime.
      */
-    decay(): void {
+    public decay(): void {
         this.energy -= Shot.decayRate * this.originalEnergy;
     }
 
@@ -895,11 +902,11 @@ class Shot extends SpaceObject {
      * Draws this object onto ctx.
      * @param ctx canvas context
      */
-    draw(ctx: CanvasRenderingContext2D): void {
+    public draw(ctx: CanvasRenderingContext2D): void {
         if (this.energy < 0) {
             return;
         }
-        let color = `rgba(0, 255, 0, ${this.energy / this.originalEnergy})`;
+        const color = `rgba(0, 255, 0, ${this.energy / this.originalEnergy})`;
         // lib.drawCircle(ctx, this.position, this.size, color, color);
         lib.drawPolygon(ctx, this.points, color, color);
     }
@@ -909,8 +916,8 @@ class Shot extends SpaceObject {
  * Asteroid class.
  */
 class Asteroid extends SpaceObject {
-    static strokeStyle: string = "#fff";
-    static fillStyle: string = "#333";
+    public static strokeStyle: string = "#fff";
+    public static fillStyle: string = "#333";
 
     constructor(
         game: Asteroids,
@@ -925,13 +932,13 @@ class Asteroid extends SpaceObject {
         // create polygon approximating the
         // circle by using random angles and radii
         this.points = [];
-        let number = ~~lib.random(10, 30);
-        let step = 2 * Math.PI / number;
+        const num = Math.floor(lib.random(10, 30));
+        const step = 2 * Math.PI / num;
         let angle = 0;
-        for (let i = 0; i <= number; i++) {
-            let radius = lib.random(this.size * 0.7, this.size);
-            let x = this.position.x + radius * Math.cos(angle);
-            let y = this.position.y + radius * Math.sin(angle);
+        for (let i = 0; i <= num; i++) {
+            const radius = lib.random(this.size * 0.7, this.size);
+            const x = this.position.x + radius * Math.cos(angle);
+            const y = this.position.y + radius * Math.sin(angle);
             this.points.push(new Vector2D(x, y));
             angle += lib.random(step * 0.7, step * 1.5);
             if (angle > 2 * Math.PI) {
@@ -963,10 +970,10 @@ class Asteroid extends SpaceObject {
         } else if (object instanceof Asteroid || object instanceof Spaceship) {
             // two asteroids hit each other
             // only push this away, the other will react itself
-            let direction = this.position.clone()
+            const direction = this.position.clone()
                 .subtr(object.position.clone())
                 .getDirection();
-            let speed = this.velocity.getNorm();
+            const speed = this.velocity.getNorm();
             this.velocity = this.velocity.add(direction)
                 .getDirection()
                 .multiplyFactor(speed);
@@ -978,8 +985,8 @@ class Asteroid extends SpaceObject {
      */
     split(): Array<Asteroid> {
         // split
-        let numberChildren = ~~lib.random(2, 6);
-        let children = [];
+        const numberChildren = Math.floor(lib.random(2, 6);
+        const children = [];
         for (let i = 0; i < numberChildren; i++) {
             let energy, energyFraction, size;
             if (i !== numberChildren - 1 && this.energy > 50) {
@@ -997,7 +1004,7 @@ class Asteroid extends SpaceObject {
                 this.size = 0;
             }
 
-            let child = new Asteroid(
+            const child = new Asteroid(
                 this.game,
                 this.position.clone().add(Vector2D.randomVector(-1, 1, -1, 1)),
                 this.orientation,
@@ -1014,7 +1021,7 @@ class Asteroid extends SpaceObject {
     /**
      * Creates 1 to 3 drops.
      */
-    createDrops(): Drop {
+    public createDrops(): Drop {
         // only create drop with some probability
         if (lib.random(0, 1) < 0.25) {
             return null;
@@ -1034,7 +1041,7 @@ class Asteroid extends SpaceObject {
      * Draws this object onto ctx.
      * @param ctx canvas context
      */
-    draw(ctx: CanvasRenderingContext2D): void {
+    public draw(ctx: CanvasRenderingContext2D): void {
         if (this.energy < 0) {
             return;
         }
@@ -1047,11 +1054,11 @@ class Asteroid extends SpaceObject {
  * They may have adverse effects.
  */
 class Drop extends SpaceObject {
-    static decayRate: number = 0.001;
-    effectType: string;
-    effect: number;
-    color: string;
-    text: string;
+    public static decayRate: number = 0.001;
+    public effectType: string;
+    public effect: number;
+    public color: string;
+    public text: string;
 
     constructor(
         game: Asteroids,
@@ -1063,22 +1070,22 @@ class Drop extends SpaceObject {
     ) {
         super(game, position, orientation, velocity, size, energy);
 
-        let effectTypes = ["energy", "power", "shield", "life", "score"];
-        let r = ~~lib.random(0, effectTypes.length);
+        const effectTypes = ["energy", "power", "shield", "life", "score"];
+        const r = Math.floor(lib.random(0, effectTypes.length));
         this.effectType = effectTypes[r];
         switch (this.effectType) {
             case "energy":
-                this.effect = 10 * ~~lib.random(-6, 11);
+                this.effect = 10 * Math.floor(lib.random(-6, 11));
                 this.color = "0, 0, 255";
                 break;
 
             case "power":
-                this.effect = ~~lib.random(-6, 11);
+                this.effect = Math.floor(lib.random(-6, 11));
                 this.color = "0, 255, 0";
                 break;
 
             case "shield":
-                this.effect = ~~lib.random(500, 1000);
+                this.effect = Math.floor(lib.random(500, 1000));
                 this.color = "255, 255, 0";
                 break;
 
@@ -1088,7 +1095,7 @@ class Drop extends SpaceObject {
                 break;
 
             case "score":
-                this.effect = ~~lib.random(-1000, 10000);
+                this.effect = Math.floor(lib.random(-1000, 10000));
                 this.color = "255, 215, 0";
                 break;
 
@@ -1099,8 +1106,8 @@ class Drop extends SpaceObject {
         this.text = `${this.effectType} ${this.effect}`;
 
         // get exact hit box
-        let textWidth = this.game.ctx.measureText(this.text).width;
-        let textHeight = this.game.fontSize;
+        const textWidth = this.game.ctx.measureText(this.text).width;
+        const textHeight = this.game.fontSize;
         this.points = [
             new Vector2D(this.position.x - textWidth, this.position.y - textHeight),
             new Vector2D(this.position.x + textWidth, this.position.y - textHeight),
@@ -1112,7 +1119,7 @@ class Drop extends SpaceObject {
     /**
      * Decrease energy overtime
      */
-    decay(): void {
+    public decay(): void {
         this.energy -= Drop.decayRate * this.originalEnergy;
     }
 
@@ -1120,7 +1127,7 @@ class Drop extends SpaceObject {
      * Allow the ship to collect this drop
      * @param collector
      */
-    collect(collector: Spaceship, game: Asteroids): void {
+    public collect(collector: Spaceship, game: Asteroids): void {
         console.warn(`collected drop: ${this.text}`);
         // increase score for collecting
         game.score += 250;
@@ -1157,7 +1164,7 @@ class Drop extends SpaceObject {
      * Draws this object onto ctx.
      * @param ctx canvas context
      */
-    draw(ctx: CanvasRenderingContext2D): void {
+    public draw(ctx: CanvasRenderingContext2D): void {
         if (this.energy < 0) {
             return;
         }
@@ -1166,12 +1173,11 @@ class Drop extends SpaceObject {
     }
 }
 
-
 /**
  * Stars are only for decoration
  */
 class Star extends SpaceObject {
-    color: string;
+    public color: string;
 
     constructor(
         game: Asteroids,
@@ -1193,20 +1199,17 @@ class Star extends SpaceObject {
      * Draws this object onto ctx.
      * @param ctx canvas context
      */
-    draw(ctx: CanvasRenderingContext2D): void {
+    public draw(ctx: CanvasRenderingContext2D): void {
         lib.drawCircle(ctx, this.position, this.size, this.color, this.color);
     }
 }
 
-
 // #endregion space objects
-
-
 
 // #region main
 
 // global game variable
-var game: Asteroids;
+let asteroids: Asteroids;
 
 /**
  * Processes keyboard events.
@@ -1223,8 +1226,8 @@ function keyDownAsteroids(event: KeyboardEvent): void {
             return;
         default:
             // pass on to game
-            if (game) {
-                game.keyDown(event);
+            if (asteroids) {
+                asteroids.keyDown(event);
             }
     }
 }
@@ -1233,10 +1236,10 @@ function keyDownAsteroids(event: KeyboardEvent): void {
  * Starts a new game.
  */
 function initAsteroids(): void {
-    if (game) {
-        game.remove();
+    if (asteroids) {
+        asteroids.remove();
     }
-    game = new Asteroids();
+    asteroids = new Asteroids();
 }
 
 // #endregion main

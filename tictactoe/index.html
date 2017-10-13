@@ -20,24 +20,24 @@
     <div id="page">
         <h1>TicTacToe</h1>
         <div id="game">
-            <button onclick="game.buttonClicked(0)"></button>
-            <button onclick="game.buttonClicked(1)"></button>
-            <button onclick="game.buttonClicked(2)"></button>
-            <button onclick="game.buttonClicked(3)"></button>
-            <button onclick="game.buttonClicked(4)"></button>
-            <button onclick="game.buttonClicked(5)"></button>
-            <button onclick="game.buttonClicked(6)"></button>
-            <button onclick="game.buttonClicked(7)"></button>
-            <button onclick="game.buttonClicked(8)"></button>
+            <button onclick="t.buttonClicked(0)"></button>
+            <button onclick="t.buttonClicked(1)"></button>
+            <button onclick="t.buttonClicked(2)"></button>
+            <button onclick="t.buttonClicked(3)"></button>
+            <button onclick="t.buttonClicked(4)"></button>
+            <button onclick="t.buttonClicked(5)"></button>
+            <button onclick="t.buttonClicked(6)"></button>
+            <button onclick="t.buttonClicked(7)"></button>
+            <button onclick="t.buttonClicked(8)"></button>
         </div>
         <div id="message">
 
         </div>
         <div id="control">
             <fieldset>
-                <input type="radio" id="twoPlayers" name="mode" value="twoPlayers" onchange="init(this.checked)">
+                <input type="radio" id="twoPlayers" name="mode" value="twoPlayers" onchange="initTicTacToe(this.checked)">
                 <label for="twoPlayers"> Two Players</label>
-                <input type="radio" id="humanVsAi" name="mode" value="humanVsAi" checked onchange="init(!this.checked)">
+                <input type="radio" id="humanVsAi" name="mode" value="humanVsAi" checked onchange="initTicTacToe(!this.checked)">
                 <label for="humanVsAi"> Human vs. AI</label>
             </fieldset>
         </div>

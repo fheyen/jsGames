@@ -2,9 +2,9 @@
  * Main class of this game.
  */
 class TicTacToe {
-    useAi: boolean;
-    state: Array<number>;
-    nextPlayer: number;
+    private useAi: boolean;
+    private state: Array<number>;
+    private nextPlayer: number;
 
     /**
      * Creates a new TicTacToe object.
@@ -18,10 +18,49 @@ class TicTacToe {
     }
 
     /**
+     * Called if a player has clicked on a button.
+     * @param position
+     */
+    public buttonClicked(position: number): void {
+        if (this.state[position] !== 0) {
+            // illegal button press
+            return;
+        }
+        if (!this.isGameOver(this.state)) {
+            console.log(`player ${this.getPlayerSymbol(this.nextPlayer)} chose ${position}`);
+
+            // set state
+            this.state[position] = this.nextPlayer;
+
+            // switch player
+            this.nextPlayer = this.nextPlayer === 1 ? 2 : 1;
+
+            // let AI play
+            if (this.nextPlayer === 2 && this.useAi && !this.isGameOver(this.state)) {
+                // player 2 is the AI
+                const decision = this.testDecisionSubtree(this.state, 2, 0).choice;
+                this.buttonClicked(decision);
+            }
+        }
+        // show current field
+        this.updateUI();
+
+        // show winner if there is one
+        if (this.isGameOver(this.state)) {
+            const winner = this.getWinner(this.state);
+            if (winner !== -1) {
+                this.showMessage(`game over!<br><br>winner: ${this.getPlayerSymbol(winner)}`);
+            } else {
+                this.showMessage("game over!<br><br>draw");
+            }
+        }
+    }
+
+    /**
      * Checks if the game is over eihter by winning or draw.
      * @param state
      */
-    isGameOver(state: Array<number>): boolean {
+    private isGameOver(state: Array<number>): boolean {
         // check if board is full
         let full: boolean = true;
         for (let i = 0; i < 9; i++) {
@@ -45,7 +84,7 @@ class TicTacToe {
      * Returns the number of the winning player or -1 if no winner.
      * @param state
      */
-    getWinner(state: Array<number>): number {
+    private getWinner(state: Array<number>): number {
         // check rows
         for (let i = 0; i < 7; i += 3) {
             if (state[i] !== 0
@@ -77,56 +116,17 @@ class TicTacToe {
     }
 
     /**
-     * Called if a player has clicked on a button.
-     * @param position
-     */
-    buttonClicked(position: number): void {
-        if (this.state[position] !== 0) {
-            // illegal button press
-            return;
-        }
-        if (!this.isGameOver(this.state)) {
-            console.log(`player ${this.getPlayerSymbol(this.nextPlayer)} chose ${position}`);
-
-            // set state
-            this.state[position] = this.nextPlayer;
-
-            // switch player
-            this.nextPlayer = this.nextPlayer === 1 ? 2 : 1;
-
-            // let AI play
-            if (this.nextPlayer === 2 && this.useAi && !this.isGameOver(this.state)) {
-                // player 2 is the AI
-                let decision = this.testDecisionSubtree(this.state, 2, 0).choice;
-                this.buttonClicked(decision);
-            }
-        }
-        // show current field
-        this.updateUI();
-
-        // show winner if there is one
-        if (this.isGameOver(this.state)) {
-            let winner = this.getWinner(this.state);
-            if (winner !== -1) {
-                this.showMessage(`game over!<br><br>winner: ${this.getPlayerSymbol(winner)}`);
-            } else {
-                this.showMessage("game over!<br><br>draw");
-            }
-        }
-    }
-
-    /**
      * Use artificial intelligence to choose best button.
      * Tests all possible outcomes and returns a cost.
      * @param state
      * @param position
      */
-    testDecisionSubtree(state: any, player: number, recursionDepth: number): any {
+    private testDecisionSubtree(state: any, player: number, recursionDepth: number): any {
         let choice;
         let choices;
         // game over? stop recursion
         if (this.isGameOver(state)) {
-            let winner = this.getWinner(state);
+            const winner = this.getWinner(state);
             if (winner === 1) {
                 // AI would lose
                 choice = {
@@ -153,13 +153,12 @@ class TicTacToe {
                 // test all free buttons
                 if (state[i] === 0) {
                     // try a decision
-                    let stateAfter = state.slice(0);
+                    const stateAfter = state.slice(0);
                     stateAfter[i] = player;
                     // test the decision
-                    let value = this.testDecisionSubtree(stateAfter, player === 1 ? 2 : 1, ++recursionDepth);
-
+                    const v = this.testDecisionSubtree(stateAfter, player === 1 ? 2 : 1, ++recursionDepth);
                     // remember choices
-                    choices[i] = value.cost;
+                    choices[i] = v.cost;
                 }
             }
             // player 1 takes max., player 2 takes min.
@@ -196,8 +195,8 @@ class TicTacToe {
      * Displays a message on the UI.
      * @param message
      */
-    showMessage(message: string): void {
-        let element = document.getElementById("message");
+    private showMessage(message: string): void {
+        const element = document.getElementById("message");
         if (element !== null) {
             element.innerHTML = message;
         } else {
@@ -210,7 +209,7 @@ class TicTacToe {
      * Maps a player number to a symbol.
      * @param player
      */
-    getPlayerSymbol(player: number): string {
+    private getPlayerSymbol(player: number): string {
         switch (player) {
             case 1:
                 return "X";
@@ -224,9 +223,9 @@ class TicTacToe {
     /**
      * Draws the UI.
      */
-    updateUI(): void {
-        let buttons = document.getElementsByTagName("button");
-        let gameOver = this.isGameOver(this.state);
+    private updateUI(): void {
+        const buttons = document.getElementsByTagName("button");
+        const gameOver = this.isGameOver(this.state);
 
         for (let i = 0; i < buttons.length; i++) {
             buttons[i].innerHTML = this.getPlayerSymbol(this.state[i]);
@@ -238,7 +237,7 @@ class TicTacToe {
     }
 }
 
-var t: TicTacToe;
+let t: TicTacToe;
 /**
  * Starts a new game.
  * @param isTwoPlayerMode game mode

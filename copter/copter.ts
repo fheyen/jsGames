@@ -2,17 +2,17 @@
  * Main class of this game.
  */
 class Copter {
-    gameSize: Array<number>;
-    player: any;
-    obstacles: Array<CopterObstacle>;
-    timeElapsed: number;
-    canvas: HTMLCanvasElement;
-    ctx: CanvasRenderingContext2D;
-    gameStarted: boolean;
-    gameRunning: boolean;
-    gameOver: boolean;
-    intervalTime: number;
-    interval: any;
+    public gameSize: Array<number>;
+    public player: any;
+    public obstacles: Array<CopterObstacle>;
+    public timeElapsed: number;
+    public canvas: HTMLCanvasElement;
+    public ctx: CanvasRenderingContext2D;
+    public gameStarted: boolean;
+    public gameRunning: boolean;
+    public gameOver: boolean;
+    public intervalTime: number;
+    public interval: any;
 
     /**
      * Creates a new Copter object.
@@ -34,124 +34,17 @@ class Copter {
     }
 
     /**
-     * Resets the game to the initial conditions.
+     * Removes the canvas from the DOM.
      */
-    reset(): void {
-        this.timeElapsed = 0;
-        this.gameStarted = false;
-        this.gameOver = false;
-        this.gameRunning = false;
-        // create player
-        let playerWidth = Math.min(this.gameSize[0], this.gameSize[1]) / 10;
-        this.player = {
-            x: 100,
-            y: this.gameSize[1] / 2,
-            width: playerWidth,
-            height: playerWidth / 2,
-            speed: 5,
-            acceleration: 1
-        };
-
-        // create obstacles
-        this.obstacles = [];
-        let number = 200;
-        let width = this.gameSize[0] / number;
-        let height = this.gameSize[1];
-        let lastObstacle = null;
-        for (let i = 0; i < number; i++) {
-            lastObstacle = new CopterObstacle(lastObstacle, width, height, 1);
-            this.obstacles.push(lastObstacle);
-        }
-
-        // draw UI
-        this.updateUI();
-        this.showMessages(
-            "Copter",
-            "~~~ new game ~~~",
-            "",
-            "press <⬆> to start",
-            "press <space> to pause",
-            "press <⬆> to move the copter up",
-            "press <F5> to reset"
-        );
-    }
-
-    /**
-     * Starts the game.
-     */
-    startGame(): void {
-        if (this.gameStarted) {
-            return;
-        }
-        if (this.gameOver) {
-            this.reset();
-        }
-        this.gameStarted = true;
-        this.gameRunning = true;
-        this.interval = setInterval(this.animate, this.intervalTime, this);
-    }
-
-    /**
-     * Pauses the game.
-     */
-    pauseGame(): void {
-        if (this.gameOver || !this.gameRunning) {
-            return;
-        }
-        this.gameRunning = false;
-        clearInterval(this.interval);
-        this.showMessages(
-            "Copter",
-            "~~~ paused ~~~",
-            "",
-            "press <space> or <⬆> to continue",
-            "press <F5> to reset"
-        );
-    }
-
-    /**
-     * Resumes the paused game.
-     */
-    resumeGame(): void {
-        if (this.gameOver || this.gameRunning) {
-            return;
-        }
-        this.gameRunning = true;
-        this.interval = setInterval(this.animate, this.intervalTime, this);
-    }
-
-    /**
-     * Ends the game.
-     */
-    endGame(): void {
-        this.gameOver = true;
-        clearInterval(this.interval);
-        this.updateUI();
-        this.showMessages(
-            "~~~ game over! ~~~",
-            "",
-            `total time survived: ${~~(this.timeElapsed / 1000)}`,
-            "",
-            "press <F5> to restart"
-        );
-    }
-
-    /**
-     * Creates and returns a canvas object.
-     */
-    createCanvas(): HTMLCanvasElement {
-        let canvas = document.createElement("canvas");
-        canvas.width = this.gameSize[0];
-        canvas.height = this.gameSize[1];
-        document.getElementsByTagName("body")[0].appendChild(canvas);
-        return canvas;
+    public remove(): void {
+        this.canvas.remove();
     }
 
     /**
      * Called if a player has clicked on a button.
      * @param event keydown event
      */
-    keyDown(event: KeyboardEvent): void {
+    public keyDown(event: KeyboardEvent): void {
         event.preventDefault();
         // process keyboard input
         switch (event.key) {
@@ -185,21 +78,135 @@ class Copter {
     }
 
     /**
-     * @param _this this object
+     * Resets the game to the initial conditions.
      */
-    animate(_this: Copter): void {
+    private reset(): void {
+        this.timeElapsed = 0;
+        this.gameStarted = false;
+        this.gameOver = false;
+        this.gameRunning = false;
+        // create player
+        const playerWidth = Math.min(this.gameSize[0], this.gameSize[1]) / 10;
+        this.player = {
+            x: 100,
+            y: this.gameSize[1] / 2,
+            width: playerWidth,
+            height: playerWidth / 2,
+            speed: 5,
+            acceleration: 1
+        };
+
+        // create obstacles
+        this.obstacles = [];
+        const num = 200;
+        const width = this.gameSize[0] / num;
+        const height = this.gameSize[1];
+        let lastObstacle = null;
+        for (let i = 0; i < num; i++) {
+            lastObstacle = new CopterObstacle(lastObstacle, width, height, 1);
+            this.obstacles.push(lastObstacle);
+        }
+
+        // draw UI
+        this.updateUI();
+        this.showMessages(
+            "Copter",
+            "~~~ new game ~~~",
+            "",
+            "press <⬆> to start",
+            "press <space> to pause",
+            "press <⬆> to move the copter up",
+            "press <F5> to reset"
+        );
+    }
+
+    /**
+     * Starts the game.
+     */
+    private startGame(): void {
+        if (this.gameStarted) {
+            return;
+        }
+        if (this.gameOver) {
+            this.reset();
+        }
+        this.gameStarted = true;
+        this.gameRunning = true;
+        this.interval = setInterval(this.animate, this.intervalTime, this);
+    }
+
+    /**
+     * Pauses the game.
+     */
+    private pauseGame(): void {
+        if (this.gameOver || !this.gameRunning) {
+            return;
+        }
+        this.gameRunning = false;
+        clearInterval(this.interval);
+        this.showMessages(
+            "Copter",
+            "~~~ paused ~~~",
+            "",
+            "press <space> or <⬆> to continue",
+            "press <F5> to reset"
+        );
+    }
+
+    /**
+     * Resumes the paused game.
+     */
+    private resumeGame(): void {
+        if (this.gameOver || this.gameRunning) {
+            return;
+        }
+        this.gameRunning = true;
+        this.interval = setInterval(this.animate, this.intervalTime, this);
+    }
+
+    /**
+     * Ends the game.
+     */
+    private endGame(): void {
+        this.gameOver = true;
+        clearInterval(this.interval);
+        this.updateUI();
+        this.showMessages(
+            "~~~ game over! ~~~",
+            "",
+            `total time survived: ${Math.floor(this.timeElapsed / 1000)}`,
+            "",
+            "press <F5> to restart"
+        );
+    }
+
+    /**
+     * Creates and returns a canvas object.
+     */
+    private createCanvas(): HTMLCanvasElement {
+        const canvas = document.createElement("canvas");
+        canvas.width = this.gameSize[0];
+        canvas.height = this.gameSize[1];
+        document.getElementsByTagName("body")[0].appendChild(canvas);
+        return canvas;
+    }
+
+    /**
+     * @param c this object
+     */
+    private animate(c: Copter): void {
         // abbreviations
-        let obs = _this.obstacles;
-        let p = _this.player;
+        const obs = c.obstacles;
+        const p = c.player;
 
         // update elapsed time
-        _this.timeElapsed += _this.intervalTime;
+        c.timeElapsed += c.intervalTime;
 
         // update player position
         p.y += p.speed;
 
         // shift obstacles
-        let obstacleWidth = obs[0].width;
+        const obstacleWidth = obs[0].width;
         obs.forEach(o => o.shift(-obstacleWidth));
         // remove 0. obstacle
         obs.unshift();
@@ -208,14 +215,14 @@ class Copter {
             new CopterObstacle(
                 obs[obs.length - 1],
                 obstacleWidth,
-                _this.gameSize[1],
-                1 + _this.timeElapsed / (1000)
+                c.gameSize[1],
+                1 + c.timeElapsed / (1000)
             )
         );
 
         // test for crash
         let crashed = false;
-        let hitBox = [
+        const hitBox = [
             [100, p.y],
             [100 + p.width, p.y + p.height]
         ];
@@ -231,9 +238,9 @@ class Copter {
         }
         if (crashed) {
             // game over
-            _this.endGame();
+            c.endGame();
         } else {
-            _this.updateUI();
+            c.updateUI();
         }
     }
 
@@ -241,7 +248,7 @@ class Copter {
      * Displays a message on the UI.
      * @param message message string list
      */
-    showMessages(...messages: Array<string>): void {
+    private showMessages(...messages: Array<string>): void {
         let offsetY = this.canvas.height / 2 - 15 * messages.length;
         messages.forEach(m => {
             this.ctx.fillText(
@@ -257,7 +264,7 @@ class Copter {
     /**
      * Draws the UI.
      */
-    updateUI(): void {
+    private updateUI(): void {
         // background
         this.ctx.fillStyle = "#000";
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
@@ -269,7 +276,7 @@ class Copter {
         this.drawCopter();
         // time elapsed
         this.ctx.fillText(
-            `time ${~~(this.timeElapsed / 1000)}`,
+            `time ${Math.floor(this.timeElapsed / 1000)}`,
             this.canvas.width / 2,
             25
         );
@@ -278,14 +285,14 @@ class Copter {
     /**
      * Draws the copter.
      */
-    drawCopter() {
-        let x = this.player.x;
-        let y = this.player.y;
-        let w = this.player.width;
-        let h = this.player.height;
-        let rotorAngle = ((this.timeElapsed / 10) % 20) / 20;
-        let rotorWidth = w * rotorAngle;
-        let rotorHeight = h * 0.125;
+    private drawCopter() {
+        const x = this.player.x;
+        const y = this.player.y;
+        const w = this.player.width;
+        const h = this.player.height;
+        const rotorAngle = ((this.timeElapsed / 10) % 20) / 20;
+        const rotorWidth = w * rotorAngle;
+        const rotorHeight = h * 0.125;
         this.ctx.fillStyle = "#fff";
         // body
         this.ctx.fillRect(
@@ -322,25 +329,18 @@ class Copter {
             rotorHeight * 0.5
         );
     }
-
-    /**
-     * Removes the canvas from the DOM.
-     */
-    remove(): void {
-        this.canvas.remove();
-    }
 }
 
 /**
  * Obstacle class for Copter.
  */
 class CopterObstacle {
-    xPosition: number;
-    width: number;
-    height: number;
-    difficulty: number;
-    holeUpperY: number;
-    holeLowerY: number;
+    public xPosition: number;
+    public width: number;
+    public height: number;
+    public difficulty: number;
+    public holeUpperY: number;
+    public holeLowerY: number;
 
     /**
      * Constructor
@@ -360,13 +360,13 @@ class CopterObstacle {
             this.holeLowerY = height - this.holeUpperY;
         } else {
             this.xPosition = lastObstacle.xPosition + width;
-            let r1 = Math.random();
-            let r2 = Math.random();
+            const r1 = Math.random();
+            const r2 = Math.random();
             // the lower the upper bound is, the more probable it should go up
-            let goDown = ((lastObstacle.holeUpperY + lastObstacle.holeLowerY) / 2) / this.height;
-            let direction = (r2 > goDown ? 1 : -1);
+            const goDown = ((lastObstacle.holeUpperY + lastObstacle.holeLowerY) / 2) / this.height;
+            const direction = (r2 > goDown ? 1 : -1);
             // get and apply shift
-            let yShift = difficulty * r1 * direction;
+            const yShift = difficulty * r1 * direction;
             this.holeUpperY = lastObstacle.holeUpperY + yShift;
             this.holeLowerY = lastObstacle.holeLowerY + yShift;
         }
@@ -376,7 +376,7 @@ class CopterObstacle {
      * Horizontal shift ob the obstacles position.
      * @param amount shift amount in pixels.
      */
-    shift(amount: number): void {
+    public shift(amount: number): void {
         this.xPosition += amount;
     }
 
@@ -384,13 +384,13 @@ class CopterObstacle {
      * Hit test for this obstacle with a rectangular hit box
      * @param hitBoxRectangle hit box
      */
-    isHit(hitBoxRectangle: Array<Array<number>>): boolean {
-        let hb = hitBoxRectangle;
-        let hb2 = [
+    public isHit(hitBoxRectangle: number[][]): boolean {
+        const hb = hitBoxRectangle;
+        const hb2 = [
             [this.xPosition, 0],
             [this.xPosition + this.width, this.holeUpperY]
         ];
-        let hb3 = [
+        const hb3 = [
             [this.xPosition, this.holeLowerY],
             [this.xPosition + this.width, this.height]
         ];
@@ -402,7 +402,7 @@ class CopterObstacle {
      * @param a rectangle a
      * @param b rectangle b
      */
-    rectangleIntersects(a: Array<Array<number>>, b: Array<Array<number>>): boolean {
+    public rectangleIntersects(a: Array<Array<number>>, b: Array<Array<number>>): boolean {
         return Math.max(a[0][0], b[0][0]) < Math.min(a[1][0], b[1][0]) &&
             Math.max(a[0][1], b[0][1]) < Math.min(a[1][1], b[1][1]);
     }
@@ -411,14 +411,14 @@ class CopterObstacle {
      * Draws this obstacle on the canvas.
      * @param ctx canvas context
      */
-    draw(ctx: CanvasRenderingContext2D): void {
+    public draw(ctx: CanvasRenderingContext2D): void {
         ctx.fillRect(this.xPosition, 0, this.width + 1, this.holeUpperY);
         ctx.fillRect(this.xPosition, this.holeLowerY, this.width + 1, this.height);
     }
 }
 
 // global game variable
-var cop: Copter;
+let cop: Copter;
 
 /**
  * Processes keyboard events.
@@ -435,8 +435,8 @@ function keyDownCopter(event: KeyboardEvent): void {
             return;
         default:
             // pass on to game
-            if (game) {
-                game.keyDown(event);
+            if (cop) {
+                cop.keyDown(event);
             }
     }
 }
