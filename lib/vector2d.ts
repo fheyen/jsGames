@@ -2,8 +2,38 @@
  * Vector class for 2D points and vectors.
  */
 class Vector2D {
-    x: number;
-    y: number;
+    /**
+     * Creates and returns a vector with random values.
+     * @param minX
+     * @param maxX
+     * @param minY
+     * @param maxY
+     */
+    public static randomVector(minX: number, maxX: number, minY: number, maxY: number): Vector2D {
+        const x = lib.random(minX, maxX);
+        const y = lib.random(minY, maxY);
+        return new Vector2D(x, y);
+    }
+
+    /**
+     * Returns a new unit vector poiting in the direction of orientation
+     * @param orientation
+     */
+    public static getUnitVectorFromOrientation(orientation: number): Vector2D {
+        return new Vector2D(Math.cos(orientation), Math.sin(orientation));
+    }
+
+    /**
+     * Returns the distance if two points.
+     * @param vector1 point 1
+     * @param vector2 point 2
+     */
+    public static getDistance(vector1: Vector2D, vector2: Vector2D): number {
+        return vector1.clone().subtr(vector2.clone()).getNorm();
+    }
+
+    public x: number;
+    public y: number;
 
     /**
      * @param {number} x x-coordinate
@@ -14,46 +44,12 @@ class Vector2D {
         this.y = y;
     }
 
-    // #region statics
-
-    /**
-     * Creates and returns a vector with random values.
-     * @param minX
-     * @param maxX
-     * @param minY
-     * @param maxY
-     */
-    static randomVector(minX: number, maxX: number, minY: number, maxY: number): Vector2D {
-        let x = lib.random(minX, maxX);
-        let y = lib.random(minY, maxY);
-        return new Vector2D(x, y);
-    }
-
-    /**
-     * Returns a new unit vector poiting in the direction of orientation
-     * @param orientation
-     */
-    static getUnitVectorFromOrientation(orientation: number): Vector2D {
-        return new Vector2D(Math.cos(orientation), Math.sin(orientation));
-    }
-
-    /**
-     * Returns the distance if two points.
-     * @param vector1 point 1
-     * @param vector2 point 2
-     */
-    static getDistance(vector1: Vector2D, vector2: Vector2D): number {
-        return vector1.clone().subtr(vector2.clone()).getNorm();
-    }
-
-    // endregion statics
-
     /**
      * Translates the point by dx and dy.
      * @param {number} dx translation of x-coordinate
      * @param {number} dy translation of y-coordinate
      */
-    translate(dx: number, dy: number): Vector2D {
+    public translate(dx: number, dy: number): Vector2D {
         this.x += dx;
         this.y += dy;
         return this;
@@ -63,7 +59,7 @@ class Vector2D {
      * Translates this vector by another vector.
      * @param vector translation vector
      */
-    translateV(vector: Vector2D): Vector2D {
+    public translateV(vector: Vector2D): Vector2D {
         return this.translate(vector.x, vector.y);
     }
 
@@ -73,7 +69,7 @@ class Vector2D {
      * @param {number} cy center point y
      * @param {number} angle rotation angle
      */
-    rotate(cx: number, cy: number, angle: number): Vector2D {
+    public rotate(cx: number, cy: number, angle: number): Vector2D {
         this.translate(-cx, -cy);
         const x = this.x;
         const y = this.y;
@@ -87,7 +83,7 @@ class Vector2D {
      * Add a vector to this.
      * @param vector
      */
-    add(vector: Vector2D): Vector2D {
+    public add(vector: Vector2D): Vector2D {
         this.x += vector.x;
         this.y += vector.y;
         return this;
@@ -97,7 +93,7 @@ class Vector2D {
      * Subtract a vector to this.
      * @param vector
      */
-    subtr(vector: Vector2D): Vector2D {
+    public subtr(vector: Vector2D): Vector2D {
         this.x -= vector.x;
         this.y -= vector.y;
         return this;
@@ -107,7 +103,7 @@ class Vector2D {
      * Multiplies a factor to this.
      * @param factor
      */
-    multiplyFactor(factor: number): Vector2D {
+    public multiplyFactor(factor: number): Vector2D {
         this.x *= factor;
         this.y *= factor;
         return this;
@@ -116,15 +112,15 @@ class Vector2D {
     /**
      * Returns the Euklidean norm of this vector.
      */
-    getNorm(): number {
+    public getNorm(): number {
         return Math.sqrt(this.x ** 2 + this.y ** 2);
     }
 
     /**
      * Returns a normalized unit vector copy of this.
      */
-    getDirection(): Vector2D {
-        let clone = this.clone();
+    public getDirection(): Vector2D {
+        const clone = this.clone();
         if (clone.getNorm() === 0) {
             return new Vector2D(0, 0);
         }
@@ -134,14 +130,14 @@ class Vector2D {
     /**
      * Returns a copy of this.
      */
-    clone(): Vector2D {
+    public clone(): Vector2D {
         return new Vector2D(this.x, this.y);
     }
 
     /**
      * Returns a printable (rounded) string representation of this point object.
      */
-    toString(): string {
+    public toString(): string {
         return `Vector2D (${this.x.toFixed(3)}, ${this.x.toFixed(3)})`;
     }
 }

@@ -1,7 +1,7 @@
 const lib = {
     /**
- * Returns a pseudorandom number in [min, max)
- */
+     * Returns a pseudorandom number in [min, max)
+     */
     random(min: number, max: number): number {
         return min + (Math.random() * (max - min));
     },
@@ -24,7 +24,7 @@ const lib = {
         ctx.save();
         ctx.beginPath();
         ctx.moveTo(points[0].x, points[0].y);
-        for (var i = 1; i < points.length; i++) {
+        for (let i = 1; i < points.length; i++) {
             ctx.lineTo(points[i].x, points[i].y);
         }
         ctx.closePath();
@@ -49,7 +49,15 @@ const lib = {
      * @param startAngle start angle
      * @param endAngle end angle
      */
-    drawCircle(ctx: CanvasRenderingContext2D, center: Vector2D, radius: number, stroke: string, fill: string, startAngle: number = 0, endAngle: number = 2 * Math.PI): void {
+    drawCircle(
+        ctx: CanvasRenderingContext2D,
+        center: Vector2D,
+        radius: number,
+        stroke: string,
+        fill: string,
+        startAngle: number = 0,
+        endAngle: number = 2 * Math.PI
+    ): void {
         ctx.save();
         ctx.beginPath();
         ctx.arc(center.x, center.y, radius, startAngle, endAngle);
