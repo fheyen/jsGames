@@ -27,7 +27,5 @@
     "tslib": "^1.8.0",
     "tslint": "^5.7.0"
   },
-  "dependencies": {
-    "commonjs": "0.0.1"
-  }
+  "dependencies": {}
 }

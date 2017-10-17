@@ -1,7 +1,8 @@
 /**
  * Main class of this game.
  */
-class Tetris {
+class Tetris
+{
     public gameSize: number[];
     public currentBlock: TetrisBlock;
     public blockQueue: TetrisBlock[];
@@ -21,10 +22,11 @@ class Tetris {
     /**
      * Creates a new Tetris object.
      */
-    constructor() {
+    constructor()
+    {
         this.gameSize = [
             window.innerWidth,
-            window.innerHeight,
+            window.innerHeight
         ];
         // game options
         this.rows = 32;
@@ -47,7 +49,8 @@ class Tetris {
     /**
      * Removes the canvas from the DOM.
      */
-    public remove(): void {
+    public remove(): void
+    {
         this.canvas.remove();
     }
 
@@ -55,44 +58,54 @@ class Tetris {
      * Called if a player has clicked on a button.
      * @param event keydown event
      */
-    public keyDown(event: KeyboardEvent): void {
+    public keyDown(event: KeyboardEvent): void
+    {
         event.preventDefault();
-        if (this.gameOver) {
+        if (this.gameOver)
+        {
             return;
         }
         // process keyboard input
-        switch (event.key) {
+        switch (event.key)
+        {
             case "ArrowLeft":
-                if (this.gameRunning) {
+                if (this.gameRunning)
+                {
                     this.currentBlock.moveLeft();
                 }
                 break;
 
             case "ArrowRight":
-                if (this.gameRunning) {
+                if (this.gameRunning)
+                {
                     this.currentBlock.moveRight();
                 }
                 break;
 
             case "ArrowUp":
-                if (this.gameRunning) {
+                if (this.gameRunning)
+                {
                     this.currentBlock.rotate();
                 }
                 break;
 
             case "ArrowDown":
-                if (this.gameRunning) {
+                if (this.gameRunning)
+                {
                     this.currentBlock.drop();
                 }
                 break;
 
             case " ":
                 // space bar: start, pause or resume
-                if (!this.gameStarted) {
+                if (!this.gameStarted)
+                {
                     this.startGame();
-                } else if (this.gameRunning) {
+                } else if (this.gameRunning)
+                {
                     this.pauseGame();
-                } else {
+                } else
+                {
                     this.resumeGame();
                 }
                 return;
@@ -106,7 +119,8 @@ class Tetris {
     /**
      * Resets the game to the initial conditions.
      */
-    private reset(): void {
+    private reset(): void
+    {
         this.timeElapsed = 0;
         this.score = 0;
         this.gameStarted = false;
@@ -115,14 +129,20 @@ class Tetris {
 
         // generate blocks
         this.blockQueue = [];
-        for (let i = 0; i < 4; i++) {
+        for (let i = 0; i < 4; i++)
+        {
             this.blockQueue.push(TetrisBlock.getRandom(this));
         }
-        this.currentBlock = this.blockQueue.shift();
+        const block = this.blockQueue.shift();
+        if (block !== undefined)
+        {
+            this.currentBlock = block;
+        }
 
         // create grid
         this.grid = [];
-        for (let i = 0; i < this.rows; i++) {
+        for (let i = 0; i < this.rows; i++)
+        {
             this.grid.push(new Array(this.cols).fill(0));
         }
 
@@ -136,14 +156,15 @@ class Tetris {
             "press <⯇> or <⯈> to move the block",
             "press <⯅> to drop the block",
             "press <⯆> to drop the block",
-            "press <F5> to reset",
+            "press <F5> to reset"
         );
     }
 
     /**
      * Starts the game.
      */
-    private startGame(): void {
+    private startGame(): void
+    {
         this.gameOver = false;
         this.gameStarted = true;
         this.gameRunning = true;
@@ -154,8 +175,10 @@ class Tetris {
     /**
      * Pauses the game.
      */
-    private pauseGame(): void {
-        if (this.gameOver || !this.gameRunning) {
+    private pauseGame(): void
+    {
+        if (this.gameOver || !this.gameRunning)
+        {
             return;
         }
         this.gameRunning = false;
@@ -165,15 +188,17 @@ class Tetris {
             "~~~ paused ~~~",
             "",
             "press <space> to continue",
-            "press <F5> to reset",
+            "press <F5> to reset"
         );
     }
 
     /**
      * Resumes the paused game.
      */
-    private resumeGame(): void {
-        if (this.gameOver || this.gameRunning) {
+    private resumeGame(): void
+    {
+        if (this.gameOver || this.gameRunning)
+        {
             return;
         }
         this.gameRunning = true;
@@ -184,7 +209,8 @@ class Tetris {
     /**
      * Ends the game.
      */
-    private endGame(): void {
+    private endGame(): void
+    {
         this.gameOver = true;
         clearInterval(this.interval);
         this.showMessages(
@@ -193,14 +219,15 @@ class Tetris {
             `total time survived: ${Math.floor(this.timeElapsed / 1000)}`,
             `total score: ${this.score}`,
             "",
-            "press <F5> to restart",
+            "press <F5> to restart"
         );
     }
 
     /**
      * Creates and returns a canvas object.
      */
-    private createCanvas(): HTMLCanvasElement {
+    private createCanvas(): HTMLCanvasElement
+    {
         const canvas = document.createElement("canvas");
         canvas.width = this.gameSize[0];
         canvas.height = this.gameSize[1];
@@ -211,7 +238,8 @@ class Tetris {
     /**
      * @param this this object
      */
-    private animate(t: Tetris): void {
+    private animate(t: Tetris): void
+    {
         t.timeElapsed += t.intervalTime;
         t.currentBlock.moveDown();
         t.play();
@@ -220,25 +248,34 @@ class Tetris {
     /**
      * Main game logic.
      */
-    private play(): void {
+    private play(): void
+    {
         // check if block hit bottom
-        if (this.currentBlock.hitBottom()) {
+        if (this.currentBlock.hitBottom())
+        {
             // if block was at top, player lost
-            if (this.currentBlock.boxes[0].y <= 0) {
+            if (this.currentBlock.boxes[0].y <= 0)
+            {
                 this.endGame();
             }
             // add block to grid
             this.currentBlock.addToGrid();
             // create new block and shift one from queue
             this.blockQueue.push(TetrisBlock.getRandom(this));
-            this.currentBlock = this.blockQueue.shift();
+            const block = this.blockQueue.shift();
+            if (block !== undefined)
+            {
+                this.currentBlock = block;
+            }
         }
         // check for full rows
         const fr = this.getFullRows();
-        if (fr.length > 0) {
+        if (fr.length > 0)
+        {
             fr.forEach((r) => this.clearRow(r));
             this.score += fr.length * 100;
-            if (fr.length === 4) {
+            if (fr.length === 4)
+            {
                 // tetris
                 this.score += fr.length * 200;
             }
@@ -253,17 +290,22 @@ class Tetris {
     /**
      * Finds full rows if there are any.
      */
-    private getFullRows(): number[] {
+    private getFullRows(): number[]
+    {
         const result = [];
-        for (let row = 0; row < this.rows; row++) {
+        for (let row = 0; row < this.rows; row++)
+        {
             let rowFull = true;
-            for (let col = 0; col < this.cols; col++) {
-                if (this.grid[row][col] === 0) {
+            for (let col = 0; col < this.cols; col++)
+            {
+                if (this.grid[row][col] === 0)
+                {
                     rowFull = false;
                     break;
                 }
             }
-            if (rowFull) {
+            if (rowFull)
+            {
                 result.push(row);
             }
         }
@@ -274,10 +316,13 @@ class Tetris {
      * Clears a row.
      * @param row index of row to be cleared.
      */
-    private clearRow(row: number) {
+    private clearRow(row: number)
+    {
         // shift all values from above down by one row
-        for (let r = row; r > 0; r--) {
-            for (let col = 0; col < this.cols; col++) {
+        for (let r = row; r > 0; r--)
+        {
+            for (let col = 0; col < this.cols; col++)
+            {
                 this.grid[r][col] = this.grid[r - 1][col];
             }
         }
@@ -287,10 +332,12 @@ class Tetris {
      * Displays a message on the UI.
      * @param message message string list
      */
-    private showMessages(...messages: string[]): void {
+    private showMessages(...messages: string[]): void
+    {
         let offsetY = this.canvas.height / 2 - 15 * messages.length;
         this.ctx.fillStyle = "#fff";
-        messages.forEach((m) => {
+        messages.forEach((m) =>
+        {
             this.ctx.fillText(
                 m,
                 this.canvas.width / 2,
@@ -304,8 +351,10 @@ class Tetris {
     /**
      * Draws the UI.
      */
-    private updateUI(): void {
-        if (this.gameOver) {
+    private updateUI(): void
+    {
+        if (this.gameOver)
+        {
             return;
         }
         // background
@@ -313,14 +362,19 @@ class Tetris {
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
         // grid
-        const boxSize = Math.min(this.gameSize[0] / (this.cols + 4), this.gameSize[1] / this.rows) * 0.8;
+        const boxSize = Math.min(
+            this.gameSize[0] / (this.cols + 4),
+            this.gameSize[1] / this.rows
+        ) * 0.8;
         const margin = boxSize / 10;
         let gridX = (this.gameSize[0] - (boxSize + margin) * (this.cols + 4)) / 2;
         let gridY = (this.gameSize[1] - (boxSize + margin) * this.rows) / 2;
         let y = gridY;
-        for (let row = 0; row < this.rows; row++) {
+        for (let row = 0; row < this.rows; row++)
+        {
             let x = gridX;
-            for (let col = 0; col < this.cols; col++) {
+            for (let col = 0; col < this.cols; col++)
+            {
                 const type = this.grid[row][col];
                 this.ctx.fillStyle = TetrisBlock.colors[type];
                 this.ctx.fillRect(x, y, boxSize, boxSize);
@@ -334,7 +388,8 @@ class Tetris {
 
         // queue
         gridX += (this.cols / 2 + 3) * (boxSize + margin);
-        this.blockQueue.forEach(b => {
+        this.blockQueue.forEach(b =>
+        {
             b.draw(this.ctx, gridX, gridY, boxSize, margin);
             gridY += (b.height + 1) * (boxSize + margin);
         });
@@ -352,10 +407,12 @@ class Tetris {
 /**
  * Class for tetris blocks.
  */
-class TetrisBlock {
+class TetrisBlock
+{
     public static colors: string[] = ["#222", "#f00", "#0f0", "#08f", "#ff0", "#66f", "#fff"];
     public static numTypes: number = 6;
-    public static getRandom(game: Tetris): TetrisBlock {
+    public static getRandom(game: Tetris): TetrisBlock
+    {
         return new TetrisBlock(
             game,
             Math.floor(lib.random(1, TetrisBlock.numTypes + 1))
@@ -367,14 +424,16 @@ class TetrisBlock {
     public boxes: Array<{ x: number, y: number }>;
     public type: number;
 
-    constructor(game: Tetris, type: number) {
+    constructor(game: Tetris, type: number)
+    {
         this.game = game;
         this.type = type;
 
         // create block from type
         const x = Math.min(game.cols / 2) - 1;
         const y = 0;
-        switch (type) {
+        switch (type)
+        {
             case 1:
                 // OO
                 // OO
@@ -383,15 +442,15 @@ class TetrisBlock {
                     { x, y },
                     {
                         x: x + 1,
-                        y: y + 0,
+                        y: y + 0
                     },
                     {
                         x: x + 0,
-                        y: y + 1,
+                        y: y + 1
                     },
                     {
                         x: x + 1,
-                        y: y + 1,
+                        y: y + 1
                     }
                 ];
                 break;
@@ -405,15 +464,15 @@ class TetrisBlock {
                     { x, y },
                     {
                         x: x + 0,
-                        y: y + 1,
+                        y: y + 1
                     },
                     {
                         x: x + 0,
-                        y: y + 2,
+                        y: y + 2
                     },
                     {
                         x: x + 1,
-                        y: y + 2,
+                        y: y + 2
                     }
                 ];
                 break;
@@ -428,15 +487,15 @@ class TetrisBlock {
                     { x, y },
                     {
                         x: x + 0,
-                        y: y + 1,
+                        y: y + 1
                     },
                     {
                         x: x + 0,
-                        y: y + 2,
+                        y: y + 2
                     },
                     {
                         x: x + 0,
-                        y: y + 3,
+                        y: y + 3
                     }
                 ];
                 break;
@@ -450,15 +509,15 @@ class TetrisBlock {
                     { x, y },
                     {
                         x: x + 1,
-                        y: y + 0,
+                        y: y + 0
                     },
                     {
                         x: x + 0,
-                        y: y + 1,
+                        y: y + 1
                     },
                     {
                         x: x + 0,
-                        y: y + 2,
+                        y: y + 2
                     }
                 ];
                 break;
@@ -472,15 +531,15 @@ class TetrisBlock {
                     { x, y },
                     {
                         x: x + 0,
-                        y: y + 1,
+                        y: y + 1
                     },
                     {
                         x: x + 1,
-                        y: y + 1,
+                        y: y + 1
                     },
                     {
                         x: x + 1,
-                        y: y + 2,
+                        y: y + 2
                     }
                 ];
                 break;
@@ -494,15 +553,15 @@ class TetrisBlock {
                     { x, y },
                     {
                         x: x + -1,
-                        y: y + 1,
+                        y: y + 1
                     },
                     {
                         x: x + 0,
-                        y: y + 1,
+                        y: y + 1
                     },
                     {
                         x: x - 1,
-                        y: y + 2,
+                        y: y + 2
                     }
                 ];
                 break;
@@ -515,11 +574,14 @@ class TetrisBlock {
     /**
      * Moves block left if possible.
      */
-    public moveLeft(): void {
-        if (this.hitSide(true)) {
+    public moveLeft(): void
+    {
+        if (this.hitSide(true))
+        {
             return;
         }
-        this.boxes = this.boxes.map(b => {
+        this.boxes = this.boxes.map(b =>
+        {
             return {
                 x: b.x - 1,
                 y: b.y
@@ -530,11 +592,14 @@ class TetrisBlock {
     /**
      * Moves block right if possible.
      */
-    public moveRight(): void {
-        if (this.hitSide(false)) {
+    public moveRight(): void
+    {
+        if (this.hitSide(false))
+        {
             return;
         }
-        this.boxes = this.boxes.map(b => {
+        this.boxes = this.boxes.map(b =>
+        {
             return {
                 x: b.x + 1,
                 y: b.y
@@ -545,11 +610,14 @@ class TetrisBlock {
     /**
      * Moves block down if possible.
      */
-    public moveDown(): void {
-        if (this.hitBottom()) {
+    public moveDown(): void
+    {
+        if (this.hitBottom())
+        {
             return;
         }
-        this.boxes = this.boxes.map(b => {
+        this.boxes = this.boxes.map(b =>
+        {
             return {
                 x: b.x,
                 y: b.y + 1
@@ -560,13 +628,16 @@ class TetrisBlock {
     /**
      * Rotates block if possible.
      */
-    public rotate(): void {
-        if (this.type === 1) {
+    public rotate(): void
+    {
+        if (this.type === 1)
+        {
             return;
         }
         const postionX = this.boxes[0].x;
         const postionY = this.boxes[0].y;
-        const boxes = this.boxes.map(b => {
+        const boxes = this.boxes.map(b =>
+        {
             // move to origin
             let x = b.x - postionX;
             let y = b.y - postionY;
@@ -583,29 +654,35 @@ class TetrisBlock {
         });
         // check if all went well
         let ok = true;
-        for (let i = 0; i < boxes.length; i++) {
+        for (let i = 0; i < boxes.length; i++)
+        {
             const x = boxes[i].x;
             const y = boxes[i].y;
-            if (y < 0) {
+            if (y < 0)
+            {
                 continue;
             }
-            if (x < 0 || x >= this.game.cols) {
+            if (x < 0 || x >= this.game.cols)
+            {
                 // side of grid reached
                 ok = false;
                 break;
             }
-            if (y >= this.game.rows) {
+            if (y >= this.game.rows)
+            {
                 // bottom of grid reached
                 ok = false;
                 break;
             }
-            if (this.game.grid[y][x] !== 0) {
+            if (this.game.grid[y][x] !== 0)
+            {
                 // space already taken
                 ok = false;
                 break;
             }
         }
-        if (ok) {
+        if (ok)
+        {
             this.boxes = boxes;
         }
     }
@@ -614,19 +691,24 @@ class TetrisBlock {
      * Checks if block would hit something when moving sideward.
      * @param left if true, movement to the left is assumed, right otherwise.
      */
-    public hitSide(left: boolean): boolean {
+    public hitSide(left: boolean): boolean
+    {
         // first box is top-left box
-        for (let i = 0; i < this.boxes.length; i++) {
+        for (let i = 0; i < this.boxes.length; i++)
+        {
             const x = this.boxes[i].x + (left ? -1 : 1);
             const y = this.boxes[i].y;
-            if (y < 0) {
+            if (y < 0)
+            {
                 continue;
             }
-            if (x < 0 || x >= this.game.cols) {
+            if (x < 0 || x >= this.game.cols)
+            {
                 // side of grid reached
                 return true;
             }
-            if (this.game.grid[y][x] !== 0) {
+            if (this.game.grid[y][x] !== 0)
+            {
                 // space already taken
                 return true;
             }
@@ -637,18 +719,23 @@ class TetrisBlock {
     /**
      * Checks if block would hit somehting when moving downward.
      */
-    public hitBottom(): boolean {
+    public hitBottom(): boolean
+    {
         // first box is top-left box
-        for (let i = 0; i < this.boxes.length; i++) {
+        for (let i = 0; i < this.boxes.length; i++)
+        {
             const x = this.boxes[i].x;
             const y = this.boxes[i].y + 1;
-            if (y < 0) {
+            if (y < 0)
+            {
                 continue;
-            } else if (y >= this.game.rows) {
+            } else if (y >= this.game.rows)
+            {
                 // bottom of grid reached
                 return true;
             }
-            if (this.game.grid[y][x] !== 0) {
+            if (this.game.grid[y][x] !== 0)
+            {
                 // space already taken
                 return true;
             }
@@ -659,8 +746,10 @@ class TetrisBlock {
     /**
      * Moves the block down as far as possible.
      */
-    public drop(): void {
-        while (!this.hitBottom()) {
+    public drop(): void
+    {
+        while (!this.hitBottom())
+        {
             this.moveDown();
         }
     }
@@ -668,8 +757,10 @@ class TetrisBlock {
     /**
      * Adds the block to the games grid (so it cannot be moved anymore).
      */
-    public addToGrid() {
-        this.boxes.forEach(b => {
+    public addToGrid()
+    {
+        this.boxes.forEach(b =>
+        {
             this.game.grid[b.y][b.x] = this.type;
         });
     }
@@ -682,9 +773,17 @@ class TetrisBlock {
      * @param boxSize size of all boxes
      * @param margin margin around boxes
      */
-    public draw(ctx: CanvasRenderingContext2D, gridX: number, gridY: number, boxSize: number, margin: number): void {
+    public draw(
+        ctx: CanvasRenderingContext2D,
+        gridX: number,
+        gridY: number,
+        boxSize: number,
+        margin: number
+    ): void
+    {
         ctx.fillStyle = TetrisBlock.colors[this.type];
-        this.boxes.forEach(b => {
+        this.boxes.forEach(b =>
+        {
             ctx.fillRect(
                 gridX + b.x * (boxSize + margin),
                 gridY + b.y * (boxSize + margin),
@@ -704,9 +803,11 @@ let tetris: Tetris;
  * Processes keyboard events.
  * @param event keyboard event
  */
-function keyDownTetris(event: KeyboardEvent): void {
+function keyDownTetris(event: KeyboardEvent): void
+{
     // some keys should be processed by the browser
-    switch (event.key) {
+    switch (event.key)
+    {
         case "F5":
             return;
         case "F11":
@@ -715,7 +816,8 @@ function keyDownTetris(event: KeyboardEvent): void {
             return;
         default:
             // pass on to game
-            if (tetris) {
+            if (tetris)
+            {
                 tetris.keyDown(event);
             }
     }
@@ -724,8 +826,10 @@ function keyDownTetris(event: KeyboardEvent): void {
 /**
  * Starts a new game.
  */
-function initTetris(): void {
-    if (tetris) {
+function initTetris(): void
+{
+    if (tetris)
+    {
         tetris.remove();
     }
     tetris = new Tetris();

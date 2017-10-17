@@ -4,33 +4,41 @@ Games written in JavaScript / Typescript. No libraries (except [sat-js](https://
 
 Feel free to download, fork and star this repo.
 
+1. [jsGames](#jsgames)
+    1. [TicTacToe](#tictactoe)
+    2. [Pong](#pong)
+    3. [Copter](#copter)
+    4. [Asteroids](#asteroids)
+    5. [Hangman](#hangman)
+    6. [Tetris](#tetris)
+
 ## TicTacToe
 
-[dir](./tictactoe/)
+[show directory](./tictactoe/)
 
 ![](tictactoe/tictactoe.png?raw=true "TicTacToe")
 
 ## Pong
 
-[dir](./pong/)
+[show directory](./pong/)
 
 ![](pong/pong.png?raw=true "TicTacToe")
 
 ## Copter
 
-[dir](./copter/)
+[show directory](./copter/)
 
 ![](copter/copter.png?raw=true "Copter")
 
 ## Asteroids
 
-[dir](./asteroids/)
+[show directory](./asteroids/)
 
 ![](asteroids/asteroids.png?raw=true "Asteroids")
 
 ## Hangman
 
-[dir](./hangman/)
+[show directory](./hangman/)
 
 Words from [github.com/dwyl/english-words](https://github.com/dwyl/english-words)
 
@@ -38,6 +46,6 @@ Words from [github.com/dwyl/english-words](https://github.com/dwyl/english-words
 
 ## Tetris
 
-[dir](./tetris/)
+[show directory](./tetris/)
 
 ![](tetris/tetris.png?raw=true "Tetris")

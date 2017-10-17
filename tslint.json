@@ -5,25 +5,48 @@
     ],
     "jsRules": {},
     "rules": {
-        "trailing-comma": false,
+        "trailing-comma": [
+            true,
+            {
+                "multiline": "never",
+                "singleline": "never"
+            }
+        ],
         "no-console": false,
-        "array-type": true,
+        "array-type": [
+            false,
+            "array"
+        ],
+        "max-line-length": [
+            true,
+            100
+        ],
         "arrow-parens": false,
+        "curly": true,
         "encoding": true,
         "max-classes-per-file": false,
+        "member-ordering": false,
         "no-any": true,
+        "no-bitwise": false,
         "no-conditional-assignment": true,
         "no-invalid-this": true,
+        "no-this-assignment": false,
+        "object-literal-sort-keys": false,
+        "one-line": false,
         "one-variable-per-declaration": true,
         "prefer-for-of": false,
         "prefer-template": true,
         "quotemark": true,
-        "semicolon": true,
-        "space-within-parens": false,
+        "semicolon": [
+            true,
+            "always"
+        ],
+        "space-within-parens": [
+            true,
+            0
+        ],
         "triple-equals": true,
-        "use-isnan": true,
-        "object-literal-sort-keys": false,
-        "curly": true
+        "use-isnan": true
     },
     "rulesDirectory": []
 }

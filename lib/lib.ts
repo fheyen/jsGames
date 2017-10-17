@@ -2,7 +2,8 @@ const lib = {
     /**
      * Returns a pseudorandom number in [min, max)
      */
-    random(min: number, max: number): number {
+    random(min: number, max: number): number
+    {
         return min + (Math.random() * (max - min));
     },
 
@@ -17,22 +18,32 @@ const lib = {
      * @param stroke stroke style
      * @param fill fill style
      */
-    drawPolygon(ctx: CanvasRenderingContext2D, points: Array<Vector2D>, stroke: string, fill: string): void {
-        if (points === undefined || points.length < 3) {
+    drawPolygon(
+        ctx: CanvasRenderingContext2D,
+        points: Array<Vector2D>,
+        stroke: string,
+        fill: string
+    ): void
+    {
+        if (points === undefined || points.length < 3)
+        {
             return;
         }
         ctx.save();
         ctx.beginPath();
         ctx.moveTo(points[0].x, points[0].y);
-        for (let i = 1; i < points.length; i++) {
+        for (let i = 1; i < points.length; i++)
+        {
             ctx.lineTo(points[i].x, points[i].y);
         }
         ctx.closePath();
-        if (stroke) {
+        if (stroke)
+        {
             ctx.strokeStyle = stroke;
             ctx.stroke();
         }
-        if (fill) {
+        if (fill)
+        {
             ctx.fillStyle = fill;
             ctx.fill();
         }
@@ -57,15 +68,18 @@ const lib = {
         fill: string,
         startAngle: number = 0,
         endAngle: number = 2 * Math.PI
-    ): void {
+    ): void
+    {
         ctx.save();
         ctx.beginPath();
         ctx.arc(center.x, center.y, radius, startAngle, endAngle);
-        if (stroke) {
+        if (stroke)
+        {
             ctx.strokeStyle = stroke;
             ctx.stroke();
         }
-        if (fill) {
+        if (fill)
+        {
             ctx.fillStyle = fill;
             ctx.fill();
         }

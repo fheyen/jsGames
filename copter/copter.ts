@@ -1,9 +1,17 @@
 /**
  * Main class of this game.
  */
-class Copter {
+class Copter
+{
     public gameSize: Array<number>;
-    public player: any;
+    public player: {
+        x: number,
+        y: number,
+        width: number,
+        height: number,
+        speed: number,
+        acceleration: number
+    };
     public obstacles: Array<CopterObstacle>;
     public timeElapsed: number;
     public canvas: HTMLCanvasElement;
@@ -17,7 +25,8 @@ class Copter {
     /**
      * Creates a new Copter object.
      */
-    constructor() {
+    constructor()
+    {
         this.gameSize = [
             window.innerWidth,
             window.innerHeight
@@ -36,7 +45,8 @@ class Copter {
     /**
      * Removes the canvas from the DOM.
      */
-    public remove(): void {
+    public remove(): void
+    {
         this.canvas.remove();
     }
 
@@ -44,30 +54,38 @@ class Copter {
      * Called if a player has clicked on a button.
      * @param event keydown event
      */
-    public keyDown(event: KeyboardEvent): void {
+    public keyDown(event: KeyboardEvent): void
+    {
         event.preventDefault();
         // process keyboard input
-        switch (event.key) {
+        switch (event.key)
+        {
             case "ArrowUp":
-                if (!this.gameStarted) {
+                if (!this.gameStarted)
+                {
                     // start game if it is not running
                     this.startGame();
-                } else if (!this.gameRunning) {
+                } else if (!this.gameRunning)
+                {
                     // resume game if it is paused
                     this.resumeGame();
-                } else if (this.player.y > 50) {
+                } else if (this.player.y > 50)
+                {
                     // move copter up if game is running
                     this.player.y -= 50;
                 }
                 break;
             case " ":
-                if (!this.gameStarted) {
+                if (!this.gameStarted)
+                {
                     return;
                 }
                 // space bar: pause or resume
-                if (this.gameRunning) {
+                if (this.gameRunning)
+                {
                     this.pauseGame();
-                } else {
+                } else
+                {
                     this.resumeGame();
                 }
                 break;
@@ -80,7 +98,8 @@ class Copter {
     /**
      * Resets the game to the initial conditions.
      */
-    private reset(): void {
+    private reset(): void
+    {
         this.timeElapsed = 0;
         this.gameStarted = false;
         this.gameOver = false;
@@ -102,7 +121,8 @@ class Copter {
         const width = this.gameSize[0] / num;
         const height = this.gameSize[1];
         let lastObstacle = null;
-        for (let i = 0; i < num; i++) {
+        for (let i = 0; i < num; i++)
+        {
             lastObstacle = new CopterObstacle(lastObstacle, width, height, 1);
             this.obstacles.push(lastObstacle);
         }
@@ -123,11 +143,14 @@ class Copter {
     /**
      * Starts the game.
      */
-    private startGame(): void {
-        if (this.gameStarted) {
+    private startGame(): void
+    {
+        if (this.gameStarted)
+        {
             return;
         }
-        if (this.gameOver) {
+        if (this.gameOver)
+        {
             this.reset();
         }
         this.gameStarted = true;
@@ -138,8 +161,10 @@ class Copter {
     /**
      * Pauses the game.
      */
-    private pauseGame(): void {
-        if (this.gameOver || !this.gameRunning) {
+    private pauseGame(): void
+    {
+        if (this.gameOver || !this.gameRunning)
+        {
             return;
         }
         this.gameRunning = false;
@@ -156,8 +181,10 @@ class Copter {
     /**
      * Resumes the paused game.
      */
-    private resumeGame(): void {
-        if (this.gameOver || this.gameRunning) {
+    private resumeGame(): void
+    {
+        if (this.gameOver || this.gameRunning)
+        {
             return;
         }
         this.gameRunning = true;
@@ -167,7 +194,8 @@ class Copter {
     /**
      * Ends the game.
      */
-    private endGame(): void {
+    private endGame(): void
+    {
         this.gameOver = true;
         clearInterval(this.interval);
         this.updateUI();
@@ -183,7 +211,8 @@ class Copter {
     /**
      * Creates and returns a canvas object.
      */
-    private createCanvas(): HTMLCanvasElement {
+    private createCanvas(): HTMLCanvasElement
+    {
         const canvas = document.createElement("canvas");
         canvas.width = this.gameSize[0];
         canvas.height = this.gameSize[1];
@@ -194,7 +223,8 @@ class Copter {
     /**
      * @param c this object
      */
-    private animate(c: Copter): void {
+    private animate(c: Copter): void
+    {
         // abbreviations
         const obs = c.obstacles;
         const p = c.player;
@@ -226,20 +256,25 @@ class Copter {
             [100, p.y],
             [100 + p.width, p.y + p.height]
         ];
-        for (let i = 0; i < obs.length; i++) {
+        for (let i = 0; i < obs.length; i++)
+        {
             // only check first few obstacles
-            if (obs[i].xPosition > p.x + p.width + obstacleWidth) {
+            if (obs[i].xPosition > p.x + p.width + obstacleWidth)
+            {
                 break;
             }
-            if (obs[i].isHit(hitBox)) {
+            if (obs[i].isHit(hitBox))
+            {
                 crashed = true;
                 break;
             }
         }
-        if (crashed) {
+        if (crashed)
+        {
             // game over
             c.endGame();
-        } else {
+        } else
+        {
             c.updateUI();
         }
     }
@@ -248,9 +283,11 @@ class Copter {
      * Displays a message on the UI.
      * @param message message string list
      */
-    private showMessages(...messages: Array<string>): void {
+    private showMessages(...messages: Array<string>): void
+    {
         let offsetY = this.canvas.height / 2 - 15 * messages.length;
-        messages.forEach(m => {
+        messages.forEach(m =>
+        {
             this.ctx.fillText(
                 m,
                 this.canvas.width / 2,
@@ -264,7 +301,8 @@ class Copter {
     /**
      * Draws the UI.
      */
-    private updateUI(): void {
+    private updateUI(): void
+    {
         // background
         this.ctx.fillStyle = "#000";
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
@@ -285,7 +323,8 @@ class Copter {
     /**
      * Draws the copter.
      */
-    private drawCopter() {
+    private drawCopter()
+    {
         const x = this.player.x;
         const y = this.player.y;
         const w = this.player.width;
@@ -334,7 +373,8 @@ class Copter {
 /**
  * Obstacle class for Copter.
  */
-class CopterObstacle {
+class CopterObstacle
+{
     public xPosition: number;
     public width: number;
     public height: number;
@@ -349,16 +389,24 @@ class CopterObstacle {
      * @param height height
      * @param difficulty difficulty
      */
-    constructor(lastObstacle: CopterObstacle, width: number, height: number, difficulty: number) {
+    constructor(
+        lastObstacle: CopterObstacle | null,
+        width: number,
+        height: number,
+        difficulty: number
+    )
+    {
         this.width = width;
         this.height = height;
         this.difficulty = difficulty;
         // if first obstacle
-        if (lastObstacle === null) {
+        if (lastObstacle === null)
+        {
             this.xPosition = 0;
             this.holeUpperY = height * 0.2;
             this.holeLowerY = height - this.holeUpperY;
-        } else {
+        } else
+        {
             this.xPosition = lastObstacle.xPosition + width;
             const r1 = Math.random();
             const r2 = Math.random();
@@ -376,7 +424,8 @@ class CopterObstacle {
      * Horizontal shift ob the obstacles position.
      * @param amount shift amount in pixels.
      */
-    public shift(amount: number): void {
+    public shift(amount: number): void
+    {
         this.xPosition += amount;
     }
 
@@ -384,7 +433,8 @@ class CopterObstacle {
      * Hit test for this obstacle with a rectangular hit box
      * @param hitBoxRectangle hit box
      */
-    public isHit(hitBoxRectangle: number[][]): boolean {
+    public isHit(hitBoxRectangle: number[][]): boolean
+    {
         const hb = hitBoxRectangle;
         const hb2 = [
             [this.xPosition, 0],
@@ -402,7 +452,8 @@ class CopterObstacle {
      * @param a rectangle a
      * @param b rectangle b
      */
-    public rectangleIntersects(a: Array<Array<number>>, b: Array<Array<number>>): boolean {
+    public rectangleIntersects(a: Array<Array<number>>, b: Array<Array<number>>): boolean
+    {
         return Math.max(a[0][0], b[0][0]) < Math.min(a[1][0], b[1][0]) &&
             Math.max(a[0][1], b[0][1]) < Math.min(a[1][1], b[1][1]);
     }
@@ -411,7 +462,8 @@ class CopterObstacle {
      * Draws this obstacle on the canvas.
      * @param ctx canvas context
      */
-    public draw(ctx: CanvasRenderingContext2D): void {
+    public draw(ctx: CanvasRenderingContext2D): void
+    {
         ctx.fillRect(this.xPosition, 0, this.width + 1, this.holeUpperY);
         ctx.fillRect(this.xPosition, this.holeLowerY, this.width + 1, this.height);
     }
@@ -424,9 +476,11 @@ let cop: Copter;
  * Processes keyboard events.
  * @param event keyboard event
  */
-function keyDownCopter(event: KeyboardEvent): void {
+function keyDownCopter(event: KeyboardEvent): void
+{
     // some keys should be processed by the browser
-    switch (event.key) {
+    switch (event.key)
+    {
         case "F5":
             return;
         case "F11":
@@ -435,7 +489,8 @@ function keyDownCopter(event: KeyboardEvent): void {
             return;
         default:
             // pass on to game
-            if (cop) {
+            if (cop)
+            {
                 cop.keyDown(event);
             }
     }
@@ -444,8 +499,10 @@ function keyDownCopter(event: KeyboardEvent): void {
 /**
  * Starts a new game.
  */
-function initCopter(): void {
-    if (cop) {
+function initCopter(): void
+{
+    if (cop)
+    {
         cop.remove();
     }
     cop = new Copter();

@@ -1,26 +1,31 @@
 /**
  * Main class of this game.
  */
-class Pong {
+class Pong
+{
     private useAi: boolean;
     private aiLag: number;
     private gameSize: number[];
     private round: number;
-    private ball: any;
-    private player1: any;
-    private player2: any;
+    private ball: {
+        position: number[],
+        speed: number[],
+        radius: number
+    };
+    private player1: IPlayer;
+    private player2: IPlayer;
     private canvas: HTMLCanvasElement;
     private ctx: CanvasRenderingContext2D;
     private gameRunning: boolean;
     private intervalTime: number;
     private interval: number;
-    private timeout: number;
 
     /**
      * Creates a new game object.
      * @param useAi if true, player 2 will be played by an artifical intelligence
      */
-    constructor(useAi: boolean) {
+    constructor(useAi: boolean)
+    {
         this.useAi = useAi;
         // lag of the AI in milliseconds
         this.aiLag = 100;
@@ -33,14 +38,22 @@ class Pong {
         this.intervalTime = 16;
         // ball
         this.ball = {
-            radius: Math.min(window.innerWidth, window.innerHeight) / 100
+            radius: Math.min(window.innerWidth, window.innerHeight) / 100,
+            position: [0, 0],
+            speed: [0, 0]
         };
         // players
         this.player1 = {
-            id: 1
+            id: 1,
+            size: 0,
+            position: 0,
+            score: 0
         };
         this.player2 = {
-            id: 2
+            id: 2,
+            size: 0,
+            position: 0,
+            score: 0
         };
         // canvas
         this.canvas = this.createCanvas();
@@ -54,7 +67,8 @@ class Pong {
     /**
      * Removes the canvas from the DOM.
      */
-    public remove(): void {
+    public remove(): void
+    {
         this.canvas.remove();
     }
 
@@ -62,37 +76,47 @@ class Pong {
      * Called when a player has pressed a key.
      * @param event keydown event
      */
-    public keyDown(event: KeyboardEvent): void {
+    public keyDown(event: KeyboardEvent): void
+    {
         event.preventDefault();
         // start game if it is not running
-        if (!this.gameRunning) {
-            if (event.key === "m") {
+        if (!this.gameRunning)
+        {
+            if (event.key === "m")
+            {
                 // change game mode
                 this.useAi = !this.useAi;
                 this.resetComplete();
-            } else {
+            } else
+            {
                 this.startGame();
             }
-        } else {
+        } else
+        {
             // process keyboard input
-            switch (event.key) {
+            switch (event.key)
+            {
                 case "w":
-                    if (this.player1.position > 10 && !this.useAi) {
+                    if (this.player1.position > 10 && !this.useAi)
+                    {
                         this.player1.position -= 10;
                     }
                     break;
                 case "s":
-                    if (this.player2.position < this.canvas.height - 10 && !this.useAi) {
+                    if (this.player2.position < this.canvas.height - 10 && !this.useAi)
+                    {
                         this.player1.position += 10;
                     }
                     break;
                 case "ArrowUp":
-                    if (this.player2.position > 10) {
+                    if (this.player2.position > 10)
+                    {
                         this.player2.position -= 10;
                     }
                     break;
                 case "ArrowDown":
-                    if (this.player2.position < this.canvas.height - 10) {
+                    if (this.player2.position < this.canvas.height - 10)
+                    {
                         this.player2.position += 10;
                     }
                     break;
@@ -108,7 +132,8 @@ class Pong {
      * Resets the game to be ready for the next round.
      * Makes the game more difficult in each round.
      */
-    private reset(): void {
+    private reset(): void
+    {
         this.round++;
         // ball
         this.ball.position = [
@@ -133,7 +158,8 @@ class Pong {
     /**
      * Resets the game to the initial conditions.
      */
-    private resetComplete(): void {
+    private resetComplete(): void
+    {
         this.round = 0;
         this.player1.score = 0;
         this.player2.score = 0;
@@ -156,10 +182,10 @@ class Pong {
     /**
      * Starts the game.
      */
-    private startGame(): void {
+    private startGame(): void
+    {
         this.gameRunning = true;
         this.resetComplete();
-        this.timeout = null;
         this.interval = setInterval(this.animateBall, this.intervalTime, this);
     }
 
@@ -167,15 +193,18 @@ class Pong {
      * Ends the game.
      * @param winner winner of the currently ended game.
      */
-    private endGame(winner: number): void {
+    private endGame(winner: number): void
+    {
         clearInterval(this.interval);
         this.updateUI(false);
         const loser = winner === 1 ? this.player2 : this.player1;
         let message;
-        if (loser.size < 20) {
+        if (loser.size < 20)
+        {
             message = `player ${loser.id} died!`;
             this.gameRunning = false;
-        } else {
+        } else
+        {
             message = `winner: player ${winner}`;
             this.reset();
         }
@@ -189,7 +218,8 @@ class Pong {
     /**
      * Creates and returns a canvas object.
      */
-    private createCanvas(): HTMLCanvasElement {
+    private createCanvas(): HTMLCanvasElement
+    {
         const canvas = document.createElement("canvas");
         canvas.width = this.gameSize[0];
         canvas.height = this.gameSize[1];
@@ -201,31 +231,37 @@ class Pong {
      * Moves the ball depedning on its current speed.
      * @param p this Pong object
      */
-    private animateBall(p: Pong): void {
+    private animateBall(p: Pong): void
+    {
         // move ball
         p.ball.position[0] += p.ball.speed[0];
         p.ball.position[1] += p.ball.speed[1];
         // reflex ball from upper and lower edge
         if (p.ball.position[1] < p.ball.radius
-            || p.ball.position[1] > p.canvas.height - p.ball.radius) {
+            || p.ball.position[1] > p.canvas.height - p.ball.radius)
+        {
             p.ball.speed[1] *= -1;
         }
         // check if game over
-        if (p.ball.position[0] < 0) {
+        if (p.ball.position[0] < 0)
+        {
             // player 2 wins
             p.player2.score++;
             p.endGame(2);
-        } else if (p.ball.position[0] > p.canvas.width) {
+        } else if (p.ball.position[0] > p.canvas.width)
+        {
             // player 1 wins
             p.player1.score++;
             p.endGame(1);
-        } else {
+        } else
+        {
             p.updateUI();
         }
         // check if player hit the ball
         const p1hit = p.playerHit(p.player1);
         const p2hit = p.playerHit(p.player2);
-        if (p1hit || p2hit) {
+        if (p1hit || p2hit)
+        {
             // invert x speed and make faster
             p.ball.speed[0] *= -1.1;
             // y speed:
@@ -233,12 +269,15 @@ class Pong {
             // depending on where the player was hit
             p.ball.speed[1] += p.playerHitDeltaYSpeed(p1hit ? p.player1 : p.player2);
         }
-        if (p.useAi) {
+        if (p.useAi)
+        {
             // if the AI is playing, let it react to the current ball y-position
             // but only slowly
-            if (p.ball.position[1] > p.player1.position) {
+            if (p.ball.position[1] > p.player1.position)
+            {
                 p.player1.position += 0.8;
-            } else {
+            } else
+            {
                 p.player1.position -= 0.8;
             }
         }
@@ -248,11 +287,13 @@ class Pong {
      * Returns true if the ball hit the specified player.
      * @param player one of the two player objects
      */
-    private playerHit(player: any): boolean {
+    private playerHit(player: IPlayer): boolean
+    {
         const playerXPosition = player.id === 1 ? 10 : this.canvas.width - 10;
         const xDistance = Math.abs(this.ball.position[0] - playerXPosition);
         const yDistance = Math.abs(this.ball.position[1] - player.position);
-        const hit = xDistance < this.ball.radius + 5 && yDistance < player.size / 2 + this.ball.radius;
+        const hit = xDistance < this.ball.radius + 5
+            && yDistance < player.size / 2 + this.ball.radius;
         return hit;
     }
 
@@ -260,7 +301,8 @@ class Pong {
      * Returns a y-speed modificator based on player-ball hit position.
      * @param player player that has been hit
      */
-    private playerHitDeltaYSpeed(player: any): number {
+    private playerHitDeltaYSpeed(player: IPlayer): number
+    {
         // get relative signed distance from player center to ball compared to player size
         return (this.ball.position[1] - player.position) / player.size;
     }
@@ -269,9 +311,11 @@ class Pong {
      * Displays a message on the UI.
      * @param message
      */
-    private showMessages(...messages: Array<string>): void {
+    private showMessages(...messages: Array<string>): void
+    {
         let offsetY = this.canvas.height / 2 - 15 * messages.length;
-        messages.forEach(m => {
+        messages.forEach(m =>
+        {
             this.ctx.fillText(
                 m,
                 this.canvas.width / 2,
@@ -285,7 +329,8 @@ class Pong {
     /**
      * Draws the UI.
      */
-    private updateUI(drawBall: boolean = true): void {
+    private updateUI(drawBall: boolean = true): void
+    {
         // background
         this.ctx.fillStyle = "#000";
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
@@ -304,7 +349,8 @@ class Pong {
             this.player2.size
         );
         // ball
-        if (drawBall) {
+        if (drawBall)
+        {
             this.ctx.beginPath();
             this.ctx.arc(
                 this.ball.position[0],
@@ -330,15 +376,25 @@ class Pong {
     }
 }
 
+interface IPlayer
+{
+    id: number;
+    size: number;
+    position: number;
+    score: number;
+}
+
 let pong: Pong;
 
 /**
  * Processes keyboard events.
  * @param event keyboard event
  */
-function keyDownPong(event: KeyboardEvent): void {
+function keyDownPong(event: KeyboardEvent): void
+{
     // some keys should be processed by the browser
-    switch (event.key) {
+    switch (event.key)
+    {
         case "F5":
             return;
         case "F11":
@@ -347,7 +403,8 @@ function keyDownPong(event: KeyboardEvent): void {
             return;
         default:
             // pass on to game
-            if (pong) {
+            if (pong)
+            {
                 pong.keyDown(event);
             }
     }
@@ -356,8 +413,10 @@ function keyDownPong(event: KeyboardEvent): void {
 /**
  * Starts a new game.
  */
-function initPong(): void {
-    if (pong) {
+function initPong(): void
+{
+    if (pong)
+    {
         pong.remove();
     }
     pong = new Pong(false);
