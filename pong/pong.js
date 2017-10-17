@@ -2,12 +2,12 @@
 /**
  * Main class of this game.
  */
-class Pong {
+var Pong = /** @class */ (function () {
     /**
      * Creates a new game object.
      * @param useAi if true, player 2 will be played by an artifical intelligence
      */
-    constructor(useAi) {
+    function Pong(useAi) {
         this.useAi = useAi;
         // lag of the AI in milliseconds
         this.aiLag = 100;
@@ -40,14 +40,14 @@ class Pong {
     /**
      * Removes the canvas from the DOM.
      */
-    remove() {
+    Pong.prototype.remove = function () {
         this.canvas.remove();
-    }
+    };
     /**
      * Called when a player has pressed a key.
      * @param event keydown event
      */
-    keyDown(event) {
+    Pong.prototype.keyDown = function (event) {
         event.preventDefault();
         // start game if it is not running
         if (!this.gameRunning) {
@@ -89,19 +89,19 @@ class Pong {
             // show current field
             this.updateUI();
         }
-    }
+    };
     /**
      * Resets the game to be ready for the next round.
      * Makes the game more difficult in each round.
      */
-    reset() {
+    Pong.prototype.reset = function () {
         this.round++;
         // ball
         this.ball.position = [
             this.gameSize[0] / 2,
             this.gameSize[1] / 2
         ];
-        const speed = this.gameSize[0] / 200 + this.round * this.gameSize[0] / 2000;
+        var speed = this.gameSize[0] / 200 + this.round * this.gameSize[0] / 2000;
         this.ball.speed = [
             Math.random() > 0.5 ? speed : -speed,
             0
@@ -111,65 +111,65 @@ class Pong {
         this.player2.position = this.gameSize[1] / 2;
         // make players smaller every round
         // make a player small if they lost, bigger if they won
-        const size = this.gameSize[1] / 3 - this.round * 5;
+        var size = this.gameSize[1] / 3 - this.round * 5;
         this.player1.size = (this.player1.score - this.player2.score) * 10 + size;
         this.player2.size = (this.player2.score - this.player1.score) * 10 + size;
-    }
+    };
     /**
      * Resets the game to the initial conditions.
      */
-    resetComplete() {
+    Pong.prototype.resetComplete = function () {
         this.round = 0;
         this.player1.score = 0;
         this.player2.score = 0;
         this.reset();
         // draw UI
         this.updateUI(false);
-        this.showMessages("P O N G", "~~~ new game ~~~", this.useAi ? "human vs. PC" : "2 player mode", "", "press <m> to change game mode", "press <s> or <⬆> to start", `player1 (left): ${this.useAi ? "PC" : "up <w> down <s>"}`, "player2 (right): up <⬆> down <⬇>", "press <F5> to reset");
-    }
+        this.showMessages("P O N G", "~~~ new game ~~~", this.useAi ? "human vs. PC" : "2 player mode", "", "press <m> to change game mode", "press <s> or <⬆> to start", "player1 (left): " + (this.useAi ? "PC" : "up <w> down <s>"), "player2 (right): up <⬆> down <⬇>", "press <F5> to reset");
+    };
     /**
      * Starts the game.
      */
-    startGame() {
+    Pong.prototype.startGame = function () {
         this.gameRunning = true;
         this.resetComplete();
         this.timeout = null;
         this.interval = setInterval(this.animateBall, this.intervalTime, this);
-    }
+    };
     /**
      * Ends the game.
      * @param winner winner of the currently ended game.
      */
-    endGame(winner) {
+    Pong.prototype.endGame = function (winner) {
         clearInterval(this.interval);
         this.updateUI(false);
-        const loser = winner === 1 ? this.player2 : this.player1;
-        let message;
+        var loser = winner === 1 ? this.player2 : this.player1;
+        var message;
         if (loser.size < 20) {
-            message = `player ${loser.id} died!`;
+            message = "player " + loser.id + " died!";
             this.gameRunning = false;
         }
         else {
-            message = `winner: player ${winner}`;
+            message = "winner: player " + winner;
             this.reset();
         }
         this.showMessages("game over!", message, "press <s> or <⬆> to continue");
-    }
+    };
     /**
      * Creates and returns a canvas object.
      */
-    createCanvas() {
-        const canvas = document.createElement("canvas");
+    Pong.prototype.createCanvas = function () {
+        var canvas = document.createElement("canvas");
         canvas.width = this.gameSize[0];
         canvas.height = this.gameSize[1];
         document.getElementsByTagName("body")[0].appendChild(canvas);
         return canvas;
-    }
+    };
     /**
      * Moves the ball depedning on its current speed.
      * @param p this Pong object
      */
-    animateBall(p) {
+    Pong.prototype.animateBall = function (p) {
         // move ball
         p.ball.position[0] += p.ball.speed[0];
         p.ball.position[1] += p.ball.speed[1];
@@ -193,8 +193,8 @@ class Pong {
             p.updateUI();
         }
         // check if player hit the ball
-        const p1hit = p.playerHit(p.player1);
-        const p2hit = p.playerHit(p.player2);
+        var p1hit = p.playerHit(p.player1);
+        var p2hit = p.playerHit(p.player2);
         if (p1hit || p2hit) {
             // invert x speed and make faster
             p.ball.speed[0] *= -1.1;
@@ -213,42 +213,48 @@ class Pong {
                 p.player1.position -= 0.8;
             }
         }
-    }
+    };
     /**
      * Returns true if the ball hit the specified player.
      * @param player one of the two player objects
      */
-    playerHit(player) {
-        const playerXPosition = player.id === 1 ? 10 : this.canvas.width - 10;
-        const xDistance = Math.abs(this.ball.position[0] - playerXPosition);
-        const yDistance = Math.abs(this.ball.position[1] - player.position);
-        const hit = xDistance < this.ball.radius + 5 && yDistance < player.size / 2 + this.ball.radius;
+    Pong.prototype.playerHit = function (player) {
+        var playerXPosition = player.id === 1 ? 10 : this.canvas.width - 10;
+        var xDistance = Math.abs(this.ball.position[0] - playerXPosition);
+        var yDistance = Math.abs(this.ball.position[1] - player.position);
+        var hit = xDistance < this.ball.radius + 5 && yDistance < player.size / 2 + this.ball.radius;
         return hit;
-    }
+    };
     /**
      * Returns a y-speed modificator based on player-ball hit position.
      * @param player player that has been hit
      */
-    playerHitDeltaYSpeed(player) {
+    Pong.prototype.playerHitDeltaYSpeed = function (player) {
         // get relative signed distance from player center to ball compared to player size
         return (this.ball.position[1] - player.position) / player.size;
-    }
+    };
     /**
      * Displays a message on the UI.
      * @param message
      */
-    showMessages(...messages) {
-        let offsetY = this.canvas.height / 2 - 15 * messages.length;
-        messages.forEach(m => {
-            this.ctx.fillText(m, this.canvas.width / 2, offsetY);
+    Pong.prototype.showMessages = function () {
+        var _this = this;
+        var messages = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            messages[_i] = arguments[_i];
+        }
+        var offsetY = this.canvas.height / 2 - 15 * messages.length;
+        messages.forEach(function (m) {
+            _this.ctx.fillText(m, _this.canvas.width / 2, offsetY);
             offsetY += 30;
             console.log(m);
         });
-    }
+    };
     /**
      * Draws the UI.
      */
-    updateUI(drawBall = true) {
+    Pong.prototype.updateUI = function (drawBall) {
+        if (drawBall === void 0) { drawBall = true; }
         // background
         this.ctx.fillStyle = "#000";
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
@@ -263,12 +269,13 @@ class Pong {
             this.ctx.fill();
         }
         // round
-        this.ctx.fillText(`round ${this.round}`, this.canvas.width / 2, 25);
+        this.ctx.fillText("round " + this.round, this.canvas.width / 2, 25);
         // score
-        this.ctx.fillText(`${this.player1.score} : ${this.player2.score}`, this.canvas.width / 2, this.canvas.height - 10);
-    }
-}
-let pong;
+        this.ctx.fillText(this.player1.score + " : " + this.player2.score, this.canvas.width / 2, this.canvas.height - 10);
+    };
+    return Pong;
+}());
+var pong;
 /**
  * Processes keyboard events.
  * @param event keyboard event

@@ -2,11 +2,11 @@
 /**
  * Main class of this game.
  */
-class Tetris {
+var Tetris = /** @class */ (function () {
     /**
      * Creates a new Tetris object.
      */
-    constructor() {
+    function Tetris() {
         this.gameSize = [
             window.innerWidth,
             window.innerHeight,
@@ -31,14 +31,14 @@ class Tetris {
     /**
      * Removes the canvas from the DOM.
      */
-    remove() {
+    Tetris.prototype.remove = function () {
         this.canvas.remove();
-    }
+    };
     /**
      * Called if a player has clicked on a button.
      * @param event keydown event
      */
-    keyDown(event) {
+    Tetris.prototype.keyDown = function (event) {
         event.preventDefault();
         if (this.gameOver) {
             return;
@@ -81,11 +81,11 @@ class Tetris {
                 break;
         }
         this.play();
-    }
+    };
     /**
      * Resets the game to the initial conditions.
      */
-    reset() {
+    Tetris.prototype.reset = function () {
         this.timeElapsed = 0;
         this.score = 0;
         this.gameStarted = false;
@@ -93,81 +93,82 @@ class Tetris {
         this.gameRunning = false;
         // generate blocks
         this.blockQueue = [];
-        for (let i = 0; i < 4; i++) {
+        for (var i = 0; i < 4; i++) {
             this.blockQueue.push(TetrisBlock.getRandom(this));
         }
         this.currentBlock = this.blockQueue.shift();
         // create grid
         this.grid = [];
-        for (let i = 0; i < this.rows; i++) {
+        for (var i = 0; i < this.rows; i++) {
             this.grid.push(new Array(this.cols).fill(0));
         }
         // draw UI
         this.updateUI();
         this.showMessages("Tetris", "~~~ new game ~~~", "", "press <space> to start or pause", "press <⯇> or <⯈> to move the block", "press <⯅> to drop the block", "press <⯆> to drop the block", "press <F5> to reset");
-    }
+    };
     /**
      * Starts the game.
      */
-    startGame() {
+    Tetris.prototype.startGame = function () {
         this.gameOver = false;
         this.gameStarted = true;
         this.gameRunning = true;
         this.updateUI();
         this.interval = setInterval(this.animate, this.intervalTime, this);
-    }
+    };
     /**
      * Pauses the game.
      */
-    pauseGame() {
+    Tetris.prototype.pauseGame = function () {
         if (this.gameOver || !this.gameRunning) {
             return;
         }
         this.gameRunning = false;
         clearInterval(this.interval);
         this.showMessages("Tetris", "~~~ paused ~~~", "", "press <space> to continue", "press <F5> to reset");
-    }
+    };
     /**
      * Resumes the paused game.
      */
-    resumeGame() {
+    Tetris.prototype.resumeGame = function () {
         if (this.gameOver || this.gameRunning) {
             return;
         }
         this.gameRunning = true;
         this.updateUI();
         this.interval = setInterval(this.animate, this.intervalTime, this);
-    }
+    };
     /**
      * Ends the game.
      */
-    endGame() {
+    Tetris.prototype.endGame = function () {
         this.gameOver = true;
         clearInterval(this.interval);
-        this.showMessages("~~~ game over! ~~~", "", `total time survived: ${Math.floor(this.timeElapsed / 1000)}`, `total score: ${this.score}`, "", "press <F5> to restart");
-    }
+        this.showMessages("~~~ game over! ~~~", "", "total time survived: " + Math.floor(this.timeElapsed / 1000), "total score: " + this.score, "", "press <F5> to restart");
+    };
     /**
      * Creates and returns a canvas object.
      */
-    createCanvas() {
-        const canvas = document.createElement("canvas");
+    Tetris.prototype.createCanvas = function () {
+        var canvas = document.createElement("canvas");
         canvas.width = this.gameSize[0];
         canvas.height = this.gameSize[1];
         document.getElementsByTagName("body")[0].appendChild(canvas);
         return canvas;
-    }
+    };
     /**
      * @param this this object
      */
-    animate(t) {
+    Tetris.prototype.animate = function (t) {
         t.timeElapsed += t.intervalTime;
         t.currentBlock.moveDown();
         t.play();
-    }
+    };
     /**
      * Main game logic.
      */
-    play() {
+    Tetris.prototype.play = function () {
+        var _this = this;
         // check if block hit bottom
         if (this.currentBlock.hitBottom()) {
             // if block was at top, player lost
@@ -181,9 +182,9 @@ class Tetris {
             this.currentBlock = this.blockQueue.shift();
         }
         // check for full rows
-        const fr = this.getFullRows();
+        var fr = this.getFullRows();
         if (fr.length > 0) {
-            fr.forEach((r) => this.clearRow(r));
+            fr.forEach(function (r) { return _this.clearRow(r); });
             this.score += fr.length * 100;
             if (fr.length === 4) {
                 // tetris
@@ -195,15 +196,15 @@ class Tetris {
             this.interval = setInterval(this.animate, this.intervalTime, this);
         }
         this.updateUI();
-    }
+    };
     /**
      * Finds full rows if there are any.
      */
-    getFullRows() {
-        const result = [];
-        for (let row = 0; row < this.rows; row++) {
-            let rowFull = true;
-            for (let col = 0; col < this.cols; col++) {
+    Tetris.prototype.getFullRows = function () {
+        var result = [];
+        for (var row = 0; row < this.rows; row++) {
+            var rowFull = true;
+            for (var col = 0; col < this.cols; col++) {
                 if (this.grid[row][col] === 0) {
                     rowFull = false;
                     break;
@@ -214,36 +215,42 @@ class Tetris {
             }
         }
         return result;
-    }
+    };
     /**
      * Clears a row.
      * @param row index of row to be cleared.
      */
-    clearRow(row) {
+    Tetris.prototype.clearRow = function (row) {
         // shift all values from above down by one row
-        for (let r = row; r > 0; r--) {
-            for (let col = 0; col < this.cols; col++) {
+        for (var r = row; r > 0; r--) {
+            for (var col = 0; col < this.cols; col++) {
                 this.grid[r][col] = this.grid[r - 1][col];
             }
         }
-    }
+    };
     /**
      * Displays a message on the UI.
      * @param message message string list
      */
-    showMessages(...messages) {
-        let offsetY = this.canvas.height / 2 - 15 * messages.length;
+    Tetris.prototype.showMessages = function () {
+        var _this = this;
+        var messages = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            messages[_i] = arguments[_i];
+        }
+        var offsetY = this.canvas.height / 2 - 15 * messages.length;
         this.ctx.fillStyle = "#fff";
-        messages.forEach((m) => {
-            this.ctx.fillText(m, this.canvas.width / 2, offsetY);
+        messages.forEach(function (m) {
+            _this.ctx.fillText(m, _this.canvas.width / 2, offsetY);
             offsetY += 30;
             console.log(m);
         });
-    }
+    };
     /**
      * Draws the UI.
      */
-    updateUI() {
+    Tetris.prototype.updateUI = function () {
+        var _this = this;
         if (this.gameOver) {
             return;
         }
@@ -251,15 +258,15 @@ class Tetris {
         this.ctx.fillStyle = "#000";
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         // grid
-        const boxSize = Math.min(this.gameSize[0] / (this.cols + 4), this.gameSize[1] / this.rows) * 0.8;
-        const margin = boxSize / 10;
-        let gridX = (this.gameSize[0] - (boxSize + margin) * (this.cols + 4)) / 2;
-        let gridY = (this.gameSize[1] - (boxSize + margin) * this.rows) / 2;
-        let y = gridY;
-        for (let row = 0; row < this.rows; row++) {
-            let x = gridX;
-            for (let col = 0; col < this.cols; col++) {
-                const type = this.grid[row][col];
+        var boxSize = Math.min(this.gameSize[0] / (this.cols + 4), this.gameSize[1] / this.rows) * 0.8;
+        var margin = boxSize / 10;
+        var gridX = (this.gameSize[0] - (boxSize + margin) * (this.cols + 4)) / 2;
+        var gridY = (this.gameSize[1] - (boxSize + margin) * this.rows) / 2;
+        var y = gridY;
+        for (var row = 0; row < this.rows; row++) {
+            var x = gridX;
+            for (var col = 0; col < this.cols; col++) {
+                var type = this.grid[row][col];
                 this.ctx.fillStyle = TetrisBlock.colors[type];
                 this.ctx.fillRect(x, y, boxSize, boxSize);
                 x += boxSize + margin;
@@ -270,32 +277,33 @@ class Tetris {
         this.currentBlock.draw(this.ctx, gridX, gridY, boxSize, margin);
         // queue
         gridX += (this.cols / 2 + 3) * (boxSize + margin);
-        this.blockQueue.forEach(b => {
-            b.draw(this.ctx, gridX, gridY, boxSize, margin);
+        this.blockQueue.forEach(function (b) {
+            b.draw(_this.ctx, gridX, gridY, boxSize, margin);
             gridY += (b.height + 1) * (boxSize + margin);
         });
         // time elapsed
         this.ctx.fillStyle = "#fff";
-        this.ctx.fillText(`time ${Math.floor(this.timeElapsed / 1000)}  ~  score ${this.score}`, this.canvas.width / 2, 25);
-    }
-}
+        this.ctx.fillText("time " + Math.floor(this.timeElapsed / 1000) + "  ~  score " + this.score, this.canvas.width / 2, 25);
+    };
+    return Tetris;
+}());
 /**
  * Class for tetris blocks.
  */
-class TetrisBlock {
-    constructor(game, type) {
+var TetrisBlock = /** @class */ (function () {
+    function TetrisBlock(game, type) {
         this.game = game;
         this.type = type;
         // create block from type
-        const x = Math.min(game.cols / 2) - 1;
-        const y = 0;
+        var x = Math.min(game.cols / 2) - 1;
+        var y = 0;
         switch (type) {
             case 1:
                 // OO
                 // OO
                 this.height = 2;
                 this.boxes = [
-                    { x, y },
+                    { x: x, y: y },
                     {
                         x: x + 1,
                         y: y + 0,
@@ -316,7 +324,7 @@ class TetrisBlock {
                 // OO
                 this.height = 3;
                 this.boxes = [
-                    { x, y },
+                    { x: x, y: y },
                     {
                         x: x + 0,
                         y: y + 1,
@@ -338,7 +346,7 @@ class TetrisBlock {
                 // O
                 this.height = 4;
                 this.boxes = [
-                    { x, y },
+                    { x: x, y: y },
                     {
                         x: x + 0,
                         y: y + 1,
@@ -359,7 +367,7 @@ class TetrisBlock {
                 // O
                 this.height = 3;
                 this.boxes = [
-                    { x, y },
+                    { x: x, y: y },
                     {
                         x: x + 1,
                         y: y + 0,
@@ -380,7 +388,7 @@ class TetrisBlock {
                 //  O
                 this.height = 3;
                 this.boxes = [
-                    { x, y },
+                    { x: x, y: y },
                     {
                         x: x + 0,
                         y: y + 1,
@@ -401,7 +409,7 @@ class TetrisBlock {
                 // O
                 this.height = 3;
                 this.boxes = [
-                    { x, y },
+                    { x: x, y: y },
                     {
                         x: x + -1,
                         y: y + 1,
@@ -420,77 +428,77 @@ class TetrisBlock {
                 break;
         }
     }
-    static getRandom(game) {
+    TetrisBlock.getRandom = function (game) {
         return new TetrisBlock(game, Math.floor(lib.random(1, TetrisBlock.numTypes + 1)));
-    }
+    };
     /**
      * Moves block left if possible.
      */
-    moveLeft() {
+    TetrisBlock.prototype.moveLeft = function () {
         if (this.hitSide(true)) {
             return;
         }
-        this.boxes = this.boxes.map(b => {
+        this.boxes = this.boxes.map(function (b) {
             return {
                 x: b.x - 1,
                 y: b.y
             };
         });
-    }
+    };
     /**
      * Moves block right if possible.
      */
-    moveRight() {
+    TetrisBlock.prototype.moveRight = function () {
         if (this.hitSide(false)) {
             return;
         }
-        this.boxes = this.boxes.map(b => {
+        this.boxes = this.boxes.map(function (b) {
             return {
                 x: b.x + 1,
                 y: b.y
             };
         });
-    }
+    };
     /**
      * Moves block down if possible.
      */
-    moveDown() {
+    TetrisBlock.prototype.moveDown = function () {
         if (this.hitBottom()) {
             return;
         }
-        this.boxes = this.boxes.map(b => {
+        this.boxes = this.boxes.map(function (b) {
             return {
                 x: b.x,
                 y: b.y + 1
             };
         });
-    }
+    };
     /**
      * Rotates block if possible.
      */
-    rotate() {
+    TetrisBlock.prototype.rotate = function () {
         if (this.type === 1) {
             return;
         }
-        const postionX = this.boxes[0].x;
-        const postionY = this.boxes[0].y;
-        const boxes = this.boxes.map(b => {
+        var postionX = this.boxes[0].x;
+        var postionY = this.boxes[0].y;
+        var boxes = this.boxes.map(function (b) {
             // move to origin
-            let x = b.x - postionX;
-            let y = b.y - postionY;
-            const tmp = y;
+            var x = b.x - postionX;
+            var y = b.y - postionY;
+            var tmp = y;
             y = -x;
             x = tmp;
             // move back
             x += postionX;
             y += postionY;
-            return { x, y };
+            return { x: x, y: y };
         });
         // check if all went well
-        let ok = true;
-        for (let i = 0; i < boxes.length; i++) {
-            const x = boxes[i].x;
-            const y = boxes[i].y;
+        var ok = true;
+        for (var i = 0; i < boxes.length; i++) {
+            var x = boxes[i].x;
+            var y = boxes[i].y;
             if (y < 0) {
                 continue;
             }
@@ -513,16 +521,16 @@ class TetrisBlock {
         if (ok) {
             this.boxes = boxes;
         }
-    }
+    };
     /**
      * Checks if block would hit something when moving sideward.
      * @param left if true, movement to the left is assumed, right otherwise.
      */
-    hitSide(left) {
+    TetrisBlock.prototype.hitSide = function (left) {
         // first box is top-left box
-        for (let i = 0; i < this.boxes.length; i++) {
-            const x = this.boxes[i].x + (left ? -1 : 1);
-            const y = this.boxes[i].y;
+        for (var i = 0; i < this.boxes.length; i++) {
+            var x = this.boxes[i].x + (left ? -1 : 1);
+            var y = this.boxes[i].y;
             if (y < 0) {
                 continue;
             }
@@ -536,15 +544,15 @@ class TetrisBlock {
             }
         }
         return false;
-    }
+    };
     /**
      * Checks if block would hit somehting when moving downward.
      */
-    hitBottom() {
+    TetrisBlock.prototype.hitBottom = function () {
         // first box is top-left box
-        for (let i = 0; i < this.boxes.length; i++) {
-            const x = this.boxes[i].x;
-            const y = this.boxes[i].y + 1;
+        for (var i = 0; i < this.boxes.length; i++) {
+            var x = this.boxes[i].x;
+            var y = this.boxes[i].y + 1;
             if (y < 0) {
                 continue;
             }
@@ -558,23 +566,24 @@ class TetrisBlock {
             }
         }
         return false;
-    }
+    };
     /**
      * Moves the block down as far as possible.
      */
-    drop() {
+    TetrisBlock.prototype.drop = function () {
         while (!this.hitBottom()) {
             this.moveDown();
         }
-    }
+    };
     /**
      * Adds the block to the games grid (so it cannot be moved anymore).
      */
-    addToGrid() {
-        this.boxes.forEach(b => {
-            this.game.grid[b.y][b.x] = this.type;
+    TetrisBlock.prototype.addToGrid = function () {
+        var _this = this;
+        this.boxes.forEach(function (b) {
+            _this.game.grid[b.y][b.x] = _this.type;
         });
-    }
+    };
     /**
      * Draws the block.
      * @param ctx canvas context
@@ -583,18 +592,19 @@ class TetrisBlock {
      * @param boxSize size of all boxes
      * @param margin margin around boxes
      */
-    draw(ctx, gridX, gridY, boxSize, margin) {
+    TetrisBlock.prototype.draw = function (ctx, gridX, gridY, boxSize, margin) {
         ctx.fillStyle = TetrisBlock.colors[this.type];
-        this.boxes.forEach(b => {
+        this.boxes.forEach(function (b) {
             ctx.fillRect(gridX + b.x * (boxSize + margin), gridY + b.y * (boxSize + margin), boxSize, boxSize);
         });
-    }
-}
-TetrisBlock.colors = ["#222", "#f00", "#0f0", "#08f", "#ff0", "#66f", "#fff"];
-TetrisBlock.numTypes = 6;
+    };
+    TetrisBlock.colors = ["#222", "#f00", "#0f0", "#08f", "#ff0", "#66f", "#fff"];
+    TetrisBlock.numTypes = 6;
+    return TetrisBlock;
+}());
 // #region main
 // global game letiable
-let tetris;
+var tetris;
 /**
  * Processes keyboard events.
  * @param event keyboard event

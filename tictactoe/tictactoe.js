@@ -2,12 +2,12 @@
 /**
  * Main class of this game.
  */
-class TicTacToe {
+var TicTacToe = /** @class */ (function () {
     /**
      * Creates a new TicTacToe object.
      * @param useAi if true, player 2 will be played by an artifical intelligence
      */
-    constructor(useAi) {
+    function TicTacToe(useAi) {
         this.useAi = useAi;
         this.state = [0, 0, 0, 0, 0, 0, 0, 0, 0];
         this.nextPlayer = 1;
@@ -17,13 +17,13 @@ class TicTacToe {
      * Called if a player has clicked on a button.
      * @param position
      */
-    buttonClicked(position) {
+    TicTacToe.prototype.buttonClicked = function (position) {
         if (this.state[position] !== 0) {
             // illegal button press
             return;
         }
         if (!this.isGameOver(this.state)) {
-            console.log(`player ${this.getPlayerSymbol(this.nextPlayer)} chose ${position}`);
+            console.log("player " + this.getPlayerSymbol(this.nextPlayer) + " chose " + position);
             // set state
             this.state[position] = this.nextPlayer;
             // switch player
@@ -31,7 +31,7 @@ class TicTacToe {
             // let AI play
             if (this.nextPlayer === 2 && this.useAi && !this.isGameOver(this.state)) {
                 // player 2 is the AI
-                const decision = this.testDecisionSubtree(this.state, 2, 0).choice;
+                var decision = this.testDecisionSubtree(this.state, 2, 0).choice;
                 this.buttonClicked(decision);
             }
         }
@@ -39,23 +39,23 @@ class TicTacToe {
         this.updateUI();
         // show winner if there is one
         if (this.isGameOver(this.state)) {
-            const winner = this.getWinner(this.state);
+            var winner = this.getWinner(this.state);
             if (winner !== -1) {
-                this.showMessage(`game over!<br><br>winner: ${this.getPlayerSymbol(winner)}`);
+                this.showMessage("game over!<br><br>winner: " + this.getPlayerSymbol(winner));
             }
             else {
                 this.showMessage("game over!<br><br>draw");
             }
         }
-    }
+    };
     /**
      * Checks if the game is over eihter by winning or draw.
      * @param state
      */
-    isGameOver(state) {
+    TicTacToe.prototype.isGameOver = function (state) {
         // check if board is full
-        let full = true;
-        for (let i = 0; i < 9; i++) {
+        var full = true;
+        for (var i = 0; i < 9; i++) {
             if (state[i] === 0) {
                 full = false;
             }
@@ -68,14 +68,14 @@ class TicTacToe {
             return true;
         }
         return false;
-    }
+    };
     /**
      * Returns the number of the winning player or -1 if no winner.
      * @param state
      */
-    getWinner(state) {
+    TicTacToe.prototype.getWinner = function (state) {
         // check rows
-        for (let i = 0; i < 7; i += 3) {
+        for (var i = 0; i < 7; i += 3) {
             if (state[i] !== 0
                 && state[i] === state[i + 1]
                 && state[i] === state[i + 2]) {
@@ -83,7 +83,7 @@ class TicTacToe {
             }
         }
         // check cols
-        for (let i = 0; i < 3; i++) {
+        for (var i = 0; i < 3; i++) {
             if (state[i] !== 0
                 && state[i] === state[i + 3]
                 && state[i] === state[i + 6]) {
@@ -102,19 +102,19 @@ class TicTacToe {
             }
         }
         return -1;
-    }
+    };
     /**
      * Use artificial intelligence to choose best button.
      * Tests all possible outcomes and returns a cost.
      * @param state
      * @param position
      */
-    testDecisionSubtree(state, player, recursionDepth) {
-        let choice;
-        let choices;
+    TicTacToe.prototype.testDecisionSubtree = function (state, player, recursionDepth) {
+        var choice;
+        var choices;
         // game over? stop recursion
         if (this.isGameOver(state)) {
-            const winner = this.getWinner(state);
+            var winner = this.getWinner(state);
             if (winner === 1) {
                 // AI would lose
                 choice = {
@@ -140,25 +140,25 @@ class TicTacToe {
         else {
             // play for both players alternating
             choices = [];
-            for (let i = 0; i < 9; i++) {
+            for (var i = 0; i < 9; i++) {
                 // test all free buttons
                 if (state[i] === 0) {
                     // try a decision
-                    const stateAfter = state.slice(0);
+                    var stateAfter = state.slice(0);
                     stateAfter[i] = player;
                     // test the decision
-                    const v = this.testDecisionSubtree(stateAfter, player === 1 ? 2 : 1, ++recursionDepth);
+                    var v = this.testDecisionSubtree(stateAfter, player === 1 ? 2 : 1, ++recursionDepth);
                     // remember choices
                     choices[i] = v.cost;
                 }
             }
             // player 1 takes max., player 2 takes min.
-            let index = -1;
-            let value;
+            var index = -1;
+            var value = void 0;
             if (player === 1) {
                 // get max value and corresponding index
                 value = -1;
-                for (let i = 0; i < choices.length; i++) {
+                for (var i = 0; i < choices.length; i++) {
                     if (choices[i] > value) {
                         value = choices[i];
                         index = i;
@@ -168,7 +168,7 @@ class TicTacToe {
             else {
                 // get max value and corresponding index
                 value = 101;
-                for (let i = 0; i < choices.length; i++) {
+                for (var i = 0; i < choices.length; i++) {
                     if (choices[i] < value) {
                         value = choices[i];
                         index = i;
@@ -181,13 +181,13 @@ class TicTacToe {
             };
         }
         return choice;
-    }
+    };
     /**
      * Displays a message on the UI.
      * @param message
      */
-    showMessage(message) {
-        const element = document.getElementById("message");
+    TicTacToe.prototype.showMessage = function (message) {
+        var element = document.getElementById("message");
         if (element !== null) {
             element.innerHTML = message;
         }
@@ -195,12 +195,12 @@ class TicTacToe {
             console.error("#message div not found!");
         }
         console.log(message);
-    }
+    };
     /**
      * Maps a player number to a symbol.
      * @param player
      */
-    getPlayerSymbol(player) {
+    TicTacToe.prototype.getPlayerSymbol = function (player) {
         switch (player) {
             case 1:
                 return "X";
@@ -209,22 +209,23 @@ class TicTacToe {
             default:
                 return "";
         }
-    }
+    };
     /**
      * Draws the UI.
      */
-    updateUI() {
-        const buttons = document.getElementsByTagName("button");
-        const gameOver = this.isGameOver(this.state);
-        for (let i = 0; i < buttons.length; i++) {
+    TicTacToe.prototype.updateUI = function () {
+        var buttons = document.getElementsByTagName("button");
+        var gameOver = this.isGameOver(this.state);
+        for (var i = 0; i < buttons.length; i++) {
             buttons[i].innerHTML = this.getPlayerSymbol(this.state[i]);
             // disable or enable button
             buttons[i].disabled = this.state[i] !== 0 || gameOver;
         }
-        this.showMessage(`next player: ${this.getPlayerSymbol(this.nextPlayer)}`);
-    }
-}
-let t;
+        this.showMessage("next player: " + this.getPlayerSymbol(this.nextPlayer));
+    };
+    return TicTacToe;
+}());
+var t;
 /**
  * Starts a new game.
  * @param isTwoPlayerMode game mode
