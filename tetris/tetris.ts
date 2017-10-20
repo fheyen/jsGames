@@ -35,7 +35,7 @@ class Tetris
         this.intervalTime = 500;
         // canvas
         this.canvas = this.createCanvas();
-        this.ctx = this.canvas.getContext("2d");
+        this.ctx = this.canvas.getContext("2d") as CanvasRenderingContext2D;
         this.ctx.font = "20px Consolas";
         this.ctx.textAlign = "center";
         this.ctx.shadowColor = "#000";

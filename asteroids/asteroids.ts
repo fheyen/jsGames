@@ -12,7 +12,7 @@ class Asteroids
     public timeElapsed: number;
     public canvas: HTMLCanvasElement;
     public backgroundCanvas: HTMLCanvasElement;
-    public ctx: CanvasRenderingContext2D | null;
+    public ctx: CanvasRenderingContext2D;
     public fontSize: number;
     public gameStarted: boolean;
     public gameRunning: boolean;
@@ -35,7 +35,7 @@ class Asteroids
         // canvas
         this.backgroundCanvas = this.createCanvas();
         this.canvas = this.createCanvas();
-        this.ctx = this.canvas.getContext("2d");
+        this.ctx = this.canvas.getContext("2d") as CanvasRenderingContext2D;
         this.fontSize = 20;
         this.ctx.font = `${this.fontSize}px Consolas`;
         this.ctx.textAlign = "center";
@@ -211,7 +211,7 @@ class Asteroids
             );
         }
         // draw stars
-        const ctx = this.backgroundCanvas.getContext("2d");
+        const ctx = this.backgroundCanvas.getContext("2d") as CanvasRenderingContext2D;
         ctx.fillStyle = "#000";
         ctx.fillRect(0, 0, this.gameSize.x, this.gameSize.y);
         this.stars.forEach(o => o.draw(ctx));

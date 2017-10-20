@@ -1,7 +1,8 @@
 /**
  * Main class of this game.
  */
-class Hangman {
+class Hangman
+{
     private gameSize: { x: number, y: number };
     private timeElapsed: number;
     private word: string;
@@ -21,7 +22,8 @@ class Hangman {
     /**
      * Creates a new Copter object.
      */
-    constructor() {
+    constructor()
+    {
         this.gameSize = {
             x: window.innerWidth,
             y: window.innerHeight
@@ -33,7 +35,7 @@ class Hangman {
         this.intervalTime = 1000;
         // canvas
         this.canvas = this.createCanvas();
-        this.ctx = this.canvas.getContext("2d");
+        this.ctx = this.canvas.getContext("2d") as CanvasRenderingContext2D;
         this.ctx.font = "20px Consolas";
         this.ctx.textAlign = "center";
         // initialize game
@@ -43,7 +45,8 @@ class Hangman {
     /**
      * Removes the canvas from the DOM.
      */
-    public remove(): void {
+    public remove(): void
+    {
         this.canvas.remove();
     }
 
@@ -51,13 +54,16 @@ class Hangman {
      * Called if a player has clicked on a button.
      * @param event keydown event
      */
-    public keyDown(event: KeyboardEvent): void {
+    public keyDown(event: KeyboardEvent): void
+    {
         event.preventDefault();
         // process keyboard input
-        if (!this.gameReady || this.gameOver) {
+        if (!this.gameReady || this.gameOver)
+        {
             return;
         }
-        if (!this.gameStarted) {
+        if (!this.gameStarted)
+        {
             this.startGame();
         }
 
@@ -65,7 +71,8 @@ class Hangman {
         this.characterKnown.set(event.key, true);
 
         // increase penalty if word does not contain this character
-        if (this.word.indexOf(event.key) === - 1) {
+        if (this.word.indexOf(event.key) === - 1)
+        {
             this.errorsMade++;
         }
 
@@ -75,7 +82,8 @@ class Hangman {
     /**
      * Resets the game to the initial conditions.
      */
-    private reset(): void {
+    private reset(): void
+    {
         this.timeElapsed = 0;
         this.gameReady = false;
         this.gameStarted = false;
@@ -94,18 +102,23 @@ class Hangman {
     /**
      * Loads a random word from a file.
      */
-    private getWord(): void {
+    private getWord(): void
+    {
         const xhr = new XMLHttpRequest();
         const url = "./words.txt";
         xhr.open("GET", url, true);
         let response = "";
         const game = this;
         // onload callback
-        xhr.onload = function() {
-            if (this.status === 200) {
+        xhr.onload = function()
+        {
+            console.log(this);
+            if (this.status === 200)
+            {
                 response = this.responseText;
 
-                if (response.length === 0) {
+                if (response.length === 0)
+                {
                     throw new Error("Could not load words!");
                 }
 
@@ -118,16 +131,19 @@ class Hangman {
                 // only letters are allowed
                 wordArray = wordArray.filter(w => !/[0-9,'-\.]/g.test(w.toLowerCase()));
 
-                if (wordArray.length === 0) {
+                if (wordArray.length === 0)
+                {
                     throw new Error("No words left after filtering!");
                 }
 
                 // choose random word
                 const index = Math.floor(lib.random(0, wordArray.length - 1));
                 game.word = wordArray[index];
-                if (game.word) {
+                if (game.word)
+                {
                     game.word = game.word.trim().toLowerCase();
-                } else {
+                } else
+                {
                     game.word = "";
                 }
 
@@ -151,11 +167,14 @@ class Hangman {
     /**
      * Starts the game.
      */
-    private startGame(): void {
-        if (this.gameStarted) {
+    private startGame(): void
+    {
+        if (this.gameStarted)
+        {
             return;
         }
-        if (this.gameOver) {
+        if (this.gameOver)
+        {
             this.reset();
         }
         this.gameStarted = true;
@@ -167,7 +186,8 @@ class Hangman {
     /**
      * Ends the game.
      */
-    private endGame(won: boolean): void {
+    private endGame(won: boolean): void
+    {
         this.gameOver = true;
         clearInterval(this.interval);
         this.updateUI();
@@ -186,7 +206,8 @@ class Hangman {
      * Refreshes the UI to show the current time once a second.
      * @param h
      */
-    private drawTime(h: Hangman) {
+    private drawTime(h: Hangman)
+    {
         h.timeElapsed += h.intervalTime;
         h.updateUI();
     }
@@ -194,7 +215,8 @@ class Hangman {
     /**
      * Creates and returns a canvas object.
      */
-    private createCanvas(): HTMLCanvasElement {
+    private createCanvas(): HTMLCanvasElement
+    {
         const canvas = document.createElement("canvas");
         canvas.width = this.gameSize.x;
         canvas.height = this.gameSize.y;
@@ -206,11 +228,13 @@ class Hangman {
      * Displays a message on the UI.
      * @param message message string list
      */
-    private showMessages(...messages: string[]): void {
+    private showMessages(...messages: string[]): void
+    {
         let offsetY = this.canvas.height / 2 - 15 * messages.length;
         this.ctx.save();
         this.ctx.fillStyle = "#fff";
-        messages.forEach(m => {
+        messages.forEach(m =>
+        {
             this.ctx.fillText(
                 m,
                 this.canvas.width / 2,
@@ -225,7 +249,8 @@ class Hangman {
     /**
      * Draws the UI.
      */
-    private updateUI(): void {
+    private updateUI(): void
+    {
         this.ctx.save();
         // background
         this.ctx.fillStyle = "#000";
@@ -239,7 +264,8 @@ class Hangman {
         this.ctx.font = `${lineWidth}px Arial`;
         this.ctx.fillStyle = "#fff";
         let numberKnown = 0;
-        for (let i = 0; i < this.word.length; i++) {
+        for (let i = 0; i < this.word.length; i++)
+        {
             const character = this.word[i];
             // show underscore
             this.ctx.fillRect(
@@ -249,7 +275,8 @@ class Hangman {
                 lineHeight
             );
             // show character of known
-            if (this.characterKnown.has(character)) {
+            if (this.characterKnown.has(character))
+            {
                 this.ctx.fillText(character, xOffset + lineWidth / 2, y - 5);
                 numberKnown++;
             }
@@ -298,7 +325,8 @@ class Hangman {
                 width * 0.3
             ]
         ];
-        for (let i = 1; i <= this.errorsMade && i <= this.maxErrors; i++) {
+        for (let i = 1; i <= this.errorsMade && i <= this.maxErrors; i++)
+        {
             const r = rects[i - 1];
             this.ctx.fillRect(r[0], r[1], r[2], r[3]);
         }
@@ -313,12 +341,14 @@ class Hangman {
         this.ctx.restore();
 
         // check if player won
-        if (!this.gameOver && numberKnown === this.word.length) {
+        if (!this.gameOver && numberKnown === this.word.length)
+        {
             this.endGame(true);
         }
 
         // check if player lost
-        if (!this.gameOver && this.errorsMade > this.maxErrors) {
+        if (!this.gameOver && this.errorsMade > this.maxErrors)
+        {
             this.endGame(false);
         }
     }
@@ -333,9 +363,11 @@ let hm: Hangman;
  * Processes keyboard events.
  * @param event keyboard event
  */
-function keyDownHangman(event: KeyboardEvent): void {
+function keyDownHangman(event: KeyboardEvent): void
+{
     // some keys should be processed by the browser
-    switch (event.key) {
+    switch (event.key)
+    {
         case "F5":
             return;
         case "F11":
@@ -344,7 +376,8 @@ function keyDownHangman(event: KeyboardEvent): void {
             return;
         default:
             // pass on to game
-            if (hm) {
+            if (hm)
+            {
                 hm.keyDown(event);
             }
     }
@@ -353,8 +386,10 @@ function keyDownHangman(event: KeyboardEvent): void {
 /**
  * Starts a new game.
  */
-function initHangman(): void {
-    if (hm) {
+function initHangman(): void
+{
+    if (hm)
+    {
         hm.remove();
     }
     hm = new Hangman();

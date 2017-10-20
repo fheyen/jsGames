@@ -35,7 +35,7 @@ class Copter
         this.intervalTime = 20;
         // canvas
         this.canvas = this.createCanvas();
-        this.ctx = this.canvas.getContext("2d");
+        this.ctx = this.canvas.getContext("2d") as CanvasRenderingContext2D;
         this.ctx.font = "20px Consolas";
         this.ctx.textAlign = "center";
         // initialize game
