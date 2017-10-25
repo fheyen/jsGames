@@ -29,7 +29,7 @@ class Tetris
             window.innerHeight
         ];
         // game options
-        this.rows = 32;
+        this.rows = 24;
         this.cols = 16;
         // inverse framerate
         this.intervalTime = 500;
@@ -113,7 +113,10 @@ class Tetris
             default:
                 break;
         }
-        this.play();
+        if (this.gameRunning)
+        {
+            this.play();
+        }
     }
 
     /**
@@ -217,7 +220,7 @@ class Tetris
             "~~~ game over! ~~~",
             "",
             `total time survived: ${Math.floor(this.timeElapsed / 1000)}`,
-            `total score: ${this.score}`,
+            `total score: ${Math.floor(this.score)}`,
             "",
             "press <F5> to restart"
         );
@@ -258,15 +261,25 @@ class Tetris
             {
                 this.endGame();
             }
-            // add block to grid
-            this.currentBlock.addToGrid();
-            // create new block and shift one from queue
-            this.blockQueue.push(TetrisBlock.getRandom(this));
-            const block = this.blockQueue.shift();
-            if (block !== undefined)
+            if (this.currentBlock.bottom)
             {
-                this.currentBlock = block;
+                // add block to grid
+                this.currentBlock.addToGrid();
+                this.score += 10;
+                // create new block and shift one from queue
+                this.blockQueue.push(TetrisBlock.getRandom(this));
+                const block = this.blockQueue.shift();
+                if (block !== undefined)
+                {
+                    this.currentBlock = block;
+                }
+            } else
+            {
+                this.currentBlock.bottom = true;
             }
+        } else
+        {
+            this.currentBlock.bottom = false;
         }
         // check for full rows
         const fr = this.getFullRows();
@@ -277,13 +290,15 @@ class Tetris
             if (fr.length === 4)
             {
                 // tetris
-                this.score += fr.length * 200;
+                this.score += fr.length * 400;
             }
             // make game faster
             this.intervalTime -= 10;
             clearInterval(this.interval);
             this.interval = setInterval(this.animate, this.intervalTime, this);
         }
+        // time add to score
+        this.score += this.intervalTime / 10000;
         this.updateUI();
     }
 
@@ -397,7 +412,7 @@ class Tetris
         // time elapsed
         this.ctx.fillStyle = "#fff";
         this.ctx.fillText(
-            `time ${Math.floor(this.timeElapsed / 1000)}  ~  score ${this.score}`,
+            `time ${Math.floor(this.timeElapsed / 1000)}  ~  score ${Math.floor(this.score)}`,
             this.canvas.width / 2,
             25
         );
@@ -409,8 +424,8 @@ class Tetris
  */
 class TetrisBlock
 {
-    public static colors: string[] = ["#222", "#f00", "#0f0", "#08f", "#ff0", "#66f", "#fff"];
-    public static numTypes: number = 6;
+    public static colors: string[] = ["#222", "#f22", "#0f0", "#08f", "#ff0", "#66f", "#ddd", "#fa0"];
+    public static numTypes: number = 7;
     public static getRandom(game: Tetris): TetrisBlock
     {
         return new TetrisBlock(
@@ -423,11 +438,14 @@ class TetrisBlock
     public height: number;
     public boxes: Array<{ x: number, y: number }>;
     public type: number;
+    public colorId: number;
+    public bottom: boolean = false;
 
     constructor(game: Tetris, type: number)
     {
         this.game = game;
         this.type = type;
+        this.colorId = Math.floor(lib.random(1, TetrisBlock.numTypes + 1));
 
         // create block from type
         const x = Math.min(game.cols / 2) - 1;
@@ -561,6 +579,28 @@ class TetrisBlock
                     },
                     {
                         x: x - 1,
+                        y: y + 2
+                    }
+                ];
+                break;
+
+            case 7:
+                // O
+                // OO
+                // O
+                this.height = 3;
+                this.boxes = [
+                    { x, y },
+                    {
+                        x: x + 0,
+                        y: y + 1
+                    },
+                    {
+                        x: x + 1,
+                        y: y + 1
+                    },
+                    {
+                        x: x + 0,
                         y: y + 2
                     }
                 ];
@@ -761,7 +801,7 @@ class TetrisBlock
     {
         this.boxes.forEach(b =>
         {
-            this.game.grid[b.y][b.x] = this.type;
+            this.game.grid[b.y][b.x] = this.colorId;
         });
     }
 
@@ -781,7 +821,7 @@ class TetrisBlock
         margin: number
     ): void
     {
-        ctx.fillStyle = TetrisBlock.colors[this.type];
+        ctx.fillStyle = TetrisBlock.colors[this.colorId];
         this.boxes.forEach(b =>
         {
             ctx.fillRect(
