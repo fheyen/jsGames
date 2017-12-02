@@ -1,6 +1,6 @@
 # jsGames
 
-Games written in JavaScript / Typescript. No libraries (except [sat-js](https://github.com/jriecken/sat-js) for polygon hit detection), only vanilla Typescript, HTML, CSS. May contain trace amounts of [stackoverflow](https://stackoverflow.com) code.
+Games written in JavaScript / TypeScript. No libraries (except [sat-js](https://github.com/jriecken/sat-js) for polygon hit detection), only vanilla Typescript, HTML, CSS. May contain trace amounts of [stackoverflow](https://stackoverflow.com) code.
 
 Feel free to download, fork and star this repo.
 
@@ -48,4 +48,4 @@ Words from [github.com/dwyl/english-words](https://github.com/dwyl/english-words
 
 [show directory](./tetris/)
 
-![](tetris/tetris.png?raw=true "Tetris")
+![](tetris/tetris_cut.png?raw=true "Tetris")
