@@ -1,5 +1,7 @@
 # jsGames
 
+[github.com/fheyen/jsGames/](https://github.com/fheyen/jsGames/)
+
 Games written in JavaScript / TypeScript. No libraries (except [sat-js](https://github.com/jriecken/sat-js) for polygon hit detection), only vanilla Typescript, HTML, CSS. May contain trace amounts of [stackoverflow](https://stackoverflow.com) code.
 
 Feel free to download, fork and star this repo.
